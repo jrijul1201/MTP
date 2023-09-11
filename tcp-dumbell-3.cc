@@ -21,6 +21,8 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <ctime>
+#include <sstream>
 #include <sys/stat.h>
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -30,7 +32,7 @@
 #include "ns3/traffic-control-module.h"
 
 using namespace ns3;
-std::string dir = "results3/";
+std::string dir = "results/";
 Time stopTime = Seconds (200);
 uint32_t segmentSize = 524;
 
@@ -100,6 +102,11 @@ InstallPacketSink (Ptr<Node> node, uint16_t port, std::string socketFactory)
 int
 main (int argc, char *argv[])
 {
+  time_t now = time (0);
+  std::stringstream ss;
+  ss << now;
+  std::string ts = ss.str ();
+  dir += ts + "/";
   uint32_t stream = 1;
   std::string socketFactory = "ns3::TcpSocketFactory";
   std::string qdiscTypeId = "ns3::FifoQueueDisc";
