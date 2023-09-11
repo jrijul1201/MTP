@@ -52,9 +52,10 @@ CheckQueueSize (Ptr<QueueDisc> queue)
 
 // Function to trace change in cwnd at n0
 static void
-CwndChange (uint32_t oldCwnd, uint32_t newCwnd)
+CwndChange (uint32_t oldCwnd, uint32_t newCwnd, uint32_t nodeId)
 {
-  std::ofstream fPlotQueue (dir + "cwndTraces/n0.dat", std::ios::out | std::ios::app);
+  std::string s = std::to_string(nodeId);
+  std::ofstream fPlotQueue (dir + "cwndTraces/n" + s + ".dat", std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << newCwnd / segmentSize << std::endl;
   fPlotQueue.close ();
 }
@@ -68,7 +69,7 @@ DropAtQueue (Ptr<OutputStreamWrapper> stream, Ptr<const QueueDiscItem> item)
 
 // Trace Function for cwnd
 void
-TraceCwnd (uint32_t node, uint32_t cwndWindow, Callback<void, uint32_t, uint32_t> CwndTrace)
+TraceCwnd (uint32_t node, uint32_t cwndWindow, Callback<void, uint32_t, uint32_t, uint32_t> CwndTrace)
 {
   Config::ConnectWithoutContext ("/NodeList/" + std::to_string (node) +
                                      "/$ns3::TcpL4Protocol/SocketList/" +
@@ -79,7 +80,7 @@ TraceCwnd (uint32_t node, uint32_t cwndWindow, Callback<void, uint32_t, uint32_t
 // Function to install BulkSend application
 void
 InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string socketFactory,
-                 uint32_t nodeId, uint32_t cwndWindow, Callback<void, uint32_t, uint32_t> CwndTrace)
+                 uint32_t nodeId, uint32_t cwndWindow, Callback<void, uint32_t, uint32_t, uint32_t> CwndTrace)
 {
   BulkSendHelper source (socketFactory, InetSocketAddress (address, port));
   source.SetAttribute ("MaxBytes", UintegerValue (0));
@@ -135,8 +136,8 @@ main (int argc, char *argv[])
   // Create nodes
   NodeContainer leftNodes, rightNodes, routers;
   routers.Create (2);
-  leftNodes.Create (1);
-  rightNodes.Create (1);
+  leftNodes.Create (2);
+  rightNodes.Create (2);
 
   std::vector<NetDeviceContainer> leftToRouter;
   std::vector<NetDeviceContainer> routerToRight;
@@ -152,7 +153,9 @@ main (int argc, char *argv[])
   pointToPointLeaf.SetDeviceAttribute ("DataRate", StringValue ("10Mbps"));
   pointToPointLeaf.SetChannelAttribute ("Delay", StringValue ("1ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (0), routers.Get (0)));
+  leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (1), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (0)));
+  routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (1)));
 
   InternetStackHelper internetStack;
 
@@ -161,6 +164,7 @@ main (int argc, char *argv[])
   internetStack.Install (routers);
 
   // Assign IP addresses to all the network devices
+  // TODO: For N > 126, change bitmask to accomodate larger network
   Ipv4AddressHelper ipAddresses ("10.0.0.0", "255.255.255.0");
 
   Ipv4InterfaceContainer r1r2IPAddress = ipAddresses.Assign (r1r2ND);
@@ -169,9 +173,13 @@ main (int argc, char *argv[])
   std::vector<Ipv4InterfaceContainer> leftToRouterIPAddress;
   leftToRouterIPAddress.push_back (ipAddresses.Assign (leftToRouter[0]));
   ipAddresses.NewNetwork ();
+  leftToRouterIPAddress.push_back (ipAddresses.Assign (leftToRouter[1]));
+  ipAddresses.NewNetwork ();
 
   std::vector<Ipv4InterfaceContainer> routerToRightIPAddress;
   routerToRightIPAddress.push_back (ipAddresses.Assign (routerToRight[0]));
+  ipAddresses.NewNetwork ();
+  routerToRightIPAddress.push_back (ipAddresses.Assign (routerToRight[1]));
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
@@ -236,10 +244,13 @@ main (int argc, char *argv[])
   // Install packet sink at receiver side
   uint16_t port = 50000;
   InstallPacketSink (rightNodes.Get (0), port, "ns3::TcpSocketFactory");
+  InstallPacketSink (rightNodes.Get (1), port, "ns3::TcpSocketFactory");
 
   // Install BulkSend application
   InstallBulkSend (leftNodes.Get (0), routerToRightIPAddress[0].GetAddress (1), port, socketFactory,
                    2, 0, MakeCallback (&CwndChange));
+  InstallBulkSend (leftNodes.Get (1), routerToRightIPAddress[1].GetAddress (1), port, socketFactory,
+                   3, 0, MakeCallback (&CwndChange));
 
   // Enable PCAP on all the point to point interfaces
   pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);

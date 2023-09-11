@@ -48,7 +48,7 @@
 #include "ns3/traffic-control-module.h"
 
 using namespace ns3;
-std::string dir = "results/";
+std::string dir = "results-linux-reno/";
 Time stopTime = Seconds (60);
 uint32_t segmentSize = 524;
 
@@ -260,6 +260,8 @@ int main (int argc, char *argv[])
 
   // Enable PCAP on all the point to point interfaces
   pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);
+  AsciiTraceHelper ascii;
+  pointToPointLeaf.EnableAsciiAll (ascii.CreateFileStream (dir+"tcp.tr"));
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
