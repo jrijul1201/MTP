@@ -34,8 +34,10 @@
 using namespace ns3;
 std::string dir = "results/";
 Time stopTime = Seconds (200);
+Time tracingDuration = Seconds(25);
+Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 524;
-uint32_t numNodes = 10;
+uint32_t numNodes = 4;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -96,9 +98,10 @@ InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string
   BulkSendHelper source (socketFactory, InetSocketAddress (address, port));
   source.SetAttribute ("MaxBytes", UintegerValue (0));
   ApplicationContainer sourceApps = source.Install (node);
-  sourceApps.Start (Seconds (10.0));
-  Simulator::Schedule (Seconds (10.0) + Seconds (0.001), &TraceCwnd, nodeId, cwndWindow, CwndTrace);
-  sourceApps.Stop (stopTime + Seconds (10.0));
+  sourceApps.Start (Seconds (0.0));
+  Simulator::Schedule (tracingStartTime  +Seconds (0.001), &TraceCwnd, nodeId, cwndWindow,
+                       CwndTrace);
+  sourceApps.Stop (stopTime);
 }
 
 // Function to install sink application
@@ -107,7 +110,7 @@ InstallPacketSink (Ptr<Node> node, uint16_t port, std::string socketFactory)
 {
   PacketSinkHelper sink (socketFactory, InetSocketAddress (Ipv4Address::GetAny (), port));
   ApplicationContainer sinkApps = sink.Install (node);
-  sinkApps.Start (Seconds (10.0));
+  sinkApps.Start (Seconds (0.0));
   sinkApps.Stop (stopTime);
 }
 
@@ -127,7 +130,7 @@ main (int argc, char *argv[])
   uint32_t delAckCount = 1;
   std::string recovery = "ns3::TcpClassicRecovery";
 
-  DataRate bottleneckBandwidth ("10Mbps");
+  DataRate bottleneckBandwidth ("1Mbps");
   Time bottleneckDelay = MilliSeconds (40);
   DataRate regLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
   Time regLinkDelay = MilliSeconds (5);
