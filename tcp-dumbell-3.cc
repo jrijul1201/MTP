@@ -34,7 +34,7 @@
 using namespace ns3;
 std::string dir = "results/";
 Time stopTime = Seconds (200);
-Time tracingDuration = Seconds(25);
+Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 524;
 uint32_t numNodes = 4;
@@ -99,7 +99,7 @@ InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string
   source.SetAttribute ("MaxBytes", UintegerValue (0));
   ApplicationContainer sourceApps = source.Install (node);
   sourceApps.Start (Seconds (0.0));
-  Simulator::Schedule (tracingStartTime  +Seconds (0.001), &TraceCwnd, nodeId, cwndWindow,
+  Simulator::Schedule (tracingStartTime, &TraceCwnd, nodeId, cwndWindow,
                        CwndTrace);
   sourceApps.Stop (stopTime);
 }
@@ -122,7 +122,7 @@ main (int argc, char *argv[])
   ss << now;
   std::string ts = ss.str ();
   dir += ts + "/";
-  
+
   uint32_t stream = 1;
   std::string socketFactory = "ns3::TcpSocketFactory";
   std::string qdiscTypeId = "ns3::FifoQueueDisc";
@@ -172,7 +172,7 @@ main (int argc, char *argv[])
   // Create the point-to-point link helpers and connect leaf nodes to router
   PointToPointHelper pointToPointLeaf;
   pointToPointLeaf.SetDeviceAttribute ("DataRate", DataRateValue (regLinkBandwidth));
-  pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue(regLinkDelay));
+  pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (regLinkDelay));
   for (uint32_t i = 0; i < numNodes; ++i)
     {
       leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (i), routers.Get (0)));
@@ -257,7 +257,7 @@ main (int argc, char *argv[])
   tch.SetQueueLimits ("ns3::DynamicQueueLimits");
 
   // Calls function to check queue size
-  Simulator::ScheduleNow (&CheckQueueSize, qd.Get (0));
+  Simulator::Schedule (tracingStartTime, &CheckQueueSize, qd.Get (0));
 
   AsciiTraceHelper asciiTraceHelper;
   Ptr<OutputStreamWrapper> streamWrapper;
