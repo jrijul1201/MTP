@@ -35,6 +35,7 @@ using namespace ns3;
 std::string dir = "results/";
 Time stopTime = Seconds (200);
 uint32_t segmentSize = 524;
+uint32_t numNodes = 10;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -118,6 +119,7 @@ main (int argc, char *argv[])
   ss << now;
   std::string ts = ss.str ();
   dir += ts + "/";
+  
   uint32_t stream = 1;
   std::string socketFactory = "ns3::TcpSocketFactory";
   std::string qdiscTypeId = "ns3::FifoQueueDisc";
@@ -125,11 +127,17 @@ main (int argc, char *argv[])
   uint32_t delAckCount = 1;
   std::string recovery = "ns3::TcpClassicRecovery";
 
+  DataRate bottleneckBandwidth ("10Mbps");
+  Time bottleneckDelay = MilliSeconds (40);
+  DataRate regLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
+  Time regLinkDelay = MilliSeconds (5);
+
   CommandLine cmd;
   cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);
   cmd.AddValue ("segmentSize", "TCP segment size (bytes)", segmentSize);
   cmd.AddValue ("delAckCount", "Delayed ack count", delAckCount);
   cmd.AddValue ("enableSack", "Flag to enable/disable sack in TCP", isSack);
+  cmd.AddValue ("numNodes", "Number of nodes in the sender", numNodes);
   cmd.AddValue ("stopTime", "Stop time for applications / simulation time will be stopTime",
                 stopTime);
   cmd.AddValue ("recovery", "Recovery algorithm type to use (e.g., ns3::TcpPrrRecovery", recovery);
@@ -146,26 +154,27 @@ main (int argc, char *argv[])
   // Create nodes
   NodeContainer leftNodes, rightNodes, routers;
   routers.Create (2);
-  leftNodes.Create (2);
-  rightNodes.Create (2);
+  leftNodes.Create (numNodes);
+  rightNodes.Create (numNodes);
 
   std::vector<NetDeviceContainer> leftToRouter;
   std::vector<NetDeviceContainer> routerToRight;
 
   // Create the point-to-point link helpers and connect two router nodes
   PointToPointHelper pointToPointRouter;
-  pointToPointRouter.SetDeviceAttribute ("DataRate", StringValue ("1Mbps"));
-  pointToPointRouter.SetChannelAttribute ("Delay", StringValue ("10ms"));
+  pointToPointRouter.SetDeviceAttribute ("DataRate", DataRateValue (bottleneckBandwidth));
+  pointToPointRouter.SetChannelAttribute ("Delay", TimeValue (bottleneckDelay));
   NetDeviceContainer r1r2ND = pointToPointRouter.Install (routers.Get (0), routers.Get (1));
 
   // Create the point-to-point link helpers and connect leaf nodes to router
   PointToPointHelper pointToPointLeaf;
-  pointToPointLeaf.SetDeviceAttribute ("DataRate", StringValue ("10Mbps"));
-  pointToPointLeaf.SetChannelAttribute ("Delay", StringValue ("1ms"));
-  leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (0), routers.Get (0)));
-  leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (1), routers.Get (0)));
-  routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (0)));
-  routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (1)));
+  pointToPointLeaf.SetDeviceAttribute ("DataRate", DataRateValue (regLinkBandwidth));
+  pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue(regLinkDelay));
+  for (uint32_t i = 0; i < numNodes; ++i)
+    {
+      leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (i), routers.Get (0)));
+      routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (i)));
+    }
 
   InternetStackHelper internetStack;
 
@@ -174,22 +183,25 @@ main (int argc, char *argv[])
   internetStack.Install (routers);
 
   // Assign IP addresses to all the network devices
-  // TODO: For N > 126, change bitmask to accomodate larger network
-  Ipv4AddressHelper ipAddresses ("10.0.0.0", "255.255.255.0");
+  // TODO: For N > 3.2k, change bitmask to accomodate larger network
+  Ipv4AddressHelper ipAddresses ("10.0.0.0", "255.255.0.0");
 
   Ipv4InterfaceContainer r1r2IPAddress = ipAddresses.Assign (r1r2ND);
   ipAddresses.NewNetwork ();
 
   std::vector<Ipv4InterfaceContainer> leftToRouterIPAddress;
-  leftToRouterIPAddress.push_back (ipAddresses.Assign (leftToRouter[0]));
-  ipAddresses.NewNetwork ();
-  leftToRouterIPAddress.push_back (ipAddresses.Assign (leftToRouter[1]));
-  ipAddresses.NewNetwork ();
+  for (uint32_t i = 0; i < numNodes; i++)
+    {
+      leftToRouterIPAddress.push_back (ipAddresses.Assign (leftToRouter[i]));
+      ipAddresses.NewNetwork ();
+    }
 
   std::vector<Ipv4InterfaceContainer> routerToRightIPAddress;
-  routerToRightIPAddress.push_back (ipAddresses.Assign (routerToRight[0]));
-  ipAddresses.NewNetwork ();
-  routerToRightIPAddress.push_back (ipAddresses.Assign (routerToRight[1]));
+  for (uint32_t i = 0; i < numNodes; i++)
+    {
+      routerToRightIPAddress.push_back (ipAddresses.Assign (routerToRight[i]));
+      ipAddresses.NewNetwork ();
+    }
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
@@ -251,17 +263,19 @@ main (int argc, char *argv[])
   streamWrapper = asciiTraceHelper.CreateFileStream (dir + "/queueTraces/drop-0.dat");
   qd.Get (0)->TraceConnectWithoutContext ("Drop", MakeBoundCallback (&DropAtQueue, streamWrapper));
 
-  // Install packet sink at receiver side
+  // Install packet sink at receiver side for N nodes
   uint16_t port = 50000;
-  InstallPacketSink (rightNodes.Get (0), port, "ns3::TcpSocketFactory");
-  InstallPacketSink (rightNodes.Get (1), port, "ns3::TcpSocketFactory");
-
-  // Install BulkSend application
-  InstallBulkSend (leftNodes.Get (0), routerToRightIPAddress[0].GetAddress (1), port, socketFactory,
-                   2, 0, MakeCallback (&CwndChange));
-  InstallBulkSend (leftNodes.Get (1), routerToRightIPAddress[1].GetAddress (1), port, socketFactory,
-                   3, 0, MakeCallback (&CwndChange));
-
+  for (uint32_t i = 0; i < numNodes; i++)
+    {
+      InstallPacketSink (rightNodes.Get (i), port, "ns3::TcpSocketFactory");
+    }
+  // Install BulkSend application for N nodes
+  for (uint32_t i = 0; i < numNodes; i++)
+    {
+      // NodeId 0 and 1 are assigned to routers, hence (2 + i) will be the nodeId
+      InstallBulkSend (leftNodes.Get (i), routerToRightIPAddress[i].GetAddress (1), port,
+                       socketFactory, 2 + i, 0, MakeCallback (&CwndChange));
+    }
   // Enable PCAP on all the point to point interfaces
   pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);
 
