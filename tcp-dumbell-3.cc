@@ -99,8 +99,7 @@ InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string
   source.SetAttribute ("MaxBytes", UintegerValue (0));
   ApplicationContainer sourceApps = source.Install (node);
   sourceApps.Start (Seconds (0.0));
-  Simulator::Schedule (tracingStartTime, &TraceCwnd, nodeId, cwndWindow,
-                       CwndTrace);
+  Simulator::Schedule (tracingStartTime, &TraceCwnd, nodeId, cwndWindow, CwndTrace);
   sourceApps.Stop (stopTime);
 }
 
@@ -129,8 +128,9 @@ main (int argc, char *argv[])
   bool isSack = true;
   uint32_t delAckCount = 1;
   std::string recovery = "ns3::TcpClassicRecovery";
+  QueueSize queueSize = QueueSize ("2084p");
 
-  DataRate bottleneckBandwidth ("1Mbps");
+  DataRate bottleneckBandwidth ("1Mbps"); // 100Mbps for actual sims
   Time bottleneckDelay = MilliSeconds (40);
   DataRate regLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
   Time regLinkDelay = MilliSeconds (5);
@@ -244,7 +244,7 @@ main (int argc, char *argv[])
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
 
   // Set default parameters for queue discipline
-  Config::SetDefault (qdiscTypeId + "::MaxSize", QueueSizeValue (QueueSize ("100p")));
+  Config::SetDefault (qdiscTypeId + "::MaxSize", QueueSizeValue (queueSize));
 
   // Install queue discipline on router
   TrafficControlHelper tch;
