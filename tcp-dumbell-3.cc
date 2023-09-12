@@ -36,6 +36,14 @@ std::string dir = "results/";
 Time stopTime = Seconds (200);
 uint32_t segmentSize = 524;
 
+static uint32_t
+GetNodeIdFromContext (std::string context)
+{
+  std::size_t const n1 = context.find_first_of ("/", 1);
+  std::size_t const n2 = context.find_first_of ("/", n1 + 1);
+  return std::stoul (context.substr (n1 + 1, n2 - n1 - 1));
+}
+
 // Function to check queue length of Router 1
 void
 CheckQueueSize (Ptr<QueueDisc> queue)
@@ -52,9 +60,10 @@ CheckQueueSize (Ptr<QueueDisc> queue)
 
 // Function to trace change in cwnd at n0
 static void
-CwndChange (uint32_t oldCwnd, uint32_t newCwnd, uint32_t nodeId)
+CwndChange (std::string context, uint32_t oldCwnd, uint32_t newCwnd)
 {
-  std::string s = std::to_string(nodeId);
+  uint32_t nodeId = GetNodeIdFromContext (context);
+  std::string s = std::to_string (nodeId);
   std::ofstream fPlotQueue (dir + "cwndTraces/n" + s + ".dat", std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << newCwnd / segmentSize << std::endl;
   fPlotQueue.close ();
@@ -69,18 +78,19 @@ DropAtQueue (Ptr<OutputStreamWrapper> stream, Ptr<const QueueDiscItem> item)
 
 // Trace Function for cwnd
 void
-TraceCwnd (uint32_t node, uint32_t cwndWindow, Callback<void, uint32_t, uint32_t, uint32_t> CwndTrace)
+TraceCwnd (uint32_t node, uint32_t cwndWindow,
+           Callback<void, std::string, uint32_t, uint32_t> CwndTrace)
 {
-  Config::ConnectWithoutContext ("/NodeList/" + std::to_string (node) +
-                                     "/$ns3::TcpL4Protocol/SocketList/" +
-                                     std::to_string (cwndWindow) + "/CongestionWindow",
-                                 CwndTrace);
+  Config::Connect ("/NodeList/" + std::to_string (node) + "/$ns3::TcpL4Protocol/SocketList/" +
+                       std::to_string (cwndWindow) + "/CongestionWindow",
+                   CwndTrace);
 }
 
 // Function to install BulkSend application
 void
 InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string socketFactory,
-                 uint32_t nodeId, uint32_t cwndWindow, Callback<void, uint32_t, uint32_t, uint32_t> CwndTrace)
+                 uint32_t nodeId, uint32_t cwndWindow,
+                 Callback<void, std::string, uint32_t, uint32_t> CwndTrace)
 {
   BulkSendHelper source (socketFactory, InetSocketAddress (address, port));
   source.SetAttribute ("MaxBytes", UintegerValue (0));
