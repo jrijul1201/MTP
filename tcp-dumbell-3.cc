@@ -130,7 +130,7 @@ main (int argc, char *argv[])
   std::string recovery = "ns3::TcpClassicRecovery";
   QueueSize queueSize = QueueSize ("2084p");
 
-  DataRate bottleneckBandwidth ("1Mbps"); // 100Mbps for actual sims
+  DataRate bottleneckBandwidth ("100Mbps"); // 100Mbps for actual sims
   Time bottleneckDelay = MilliSeconds (40);
   DataRate regLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
   Time regLinkDelay = MilliSeconds (5);
