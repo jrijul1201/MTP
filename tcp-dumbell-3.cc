@@ -78,6 +78,10 @@ CwndChange (std::string context, uint32_t oldCwnd, uint32_t newCwnd)
   fPlotQueue.close ();
 }
 
+// Function to calculate throughput
+
+
+
 // Function to calculate drops in a particular Queue
 static void
 DropAtQueue (Ptr<OutputStreamWrapper> stream, Ptr<const QueueDiscItem> item)
@@ -174,10 +178,10 @@ main (int argc, char *argv[])
   std::string recovery = "ns3::TcpClassicRecovery";
   QueueSize queueSize = QueueSize ("2084p");
 
-  bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
-  Time bottleneckDelay = MilliSeconds (1);
+  DataRate bottleneckBandwidth ("100Mbps"); // 100Mbps for actual sims
+  Time bottleneckDelay = MilliSeconds (2);
   DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
-  Time *accessLinkDelays = variedAccessLinkDelays (numNodes, 49);
+  Time *accessLinkDelays = variedAccessLinkDelays (numNodes, 24);
 
   CommandLine cmd;
   cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);

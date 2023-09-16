@@ -262,6 +262,7 @@ int main (int argc, char *argv[])
   pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);
   AsciiTraceHelper ascii;
   pointToPointLeaf.EnableAsciiAll (ascii.CreateFileStream (dir+"tcp.tr"));
+  pointToPointRouter.EnableAsciiAll (ascii.CreateFileStream (dir + "tcpRouter.tr"));
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
