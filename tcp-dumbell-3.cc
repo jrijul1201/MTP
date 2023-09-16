@@ -158,7 +158,7 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor)
   lu << curTime << " " << throughput / bottleneckBandwidth.GetBitRate () * 8 << std::endl;
   prevTime = curTime;
   prev = itr->second.txBytes;
-  Simulator::Schedule (Seconds (0.2), &TraceThroughput, monitor);
+  Simulator::Schedule (Seconds (0.2), &TraceThroughputAndLU, monitor);
 }
 
 int
@@ -336,7 +336,7 @@ main (int argc, char *argv[])
   // Check for dropped packets using Flow Monitor
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
-  Simulator::Schedule (tracingStartTime, &TraceThroughput, monitor);
+  Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor);
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
