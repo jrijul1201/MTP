@@ -78,10 +78,6 @@ CwndChange (std::string context, uint32_t oldCwnd, uint32_t newCwnd)
   fPlotQueue.close ();
 }
 
-// Function to calculate throughput
-
-
-
 // Function to calculate drops in a particular Queue
 static void
 DropAtQueue (Ptr<OutputStreamWrapper> stream, Ptr<const QueueDiscItem> item)
@@ -152,10 +148,12 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor)
   Time curTime = Now ();
   std::ofstream thr (dir + "/throughput.dat", std::ios::out | std::ios::app);
   std::ofstream lu (dir + "/linkUtilization.dat", std::ios::out | std::ios::app);
+  // Throughput is in MegaBits/Second
   double throughput = 8 * (itr->second.txBytes - prev) /
                       (1000 * 1000 * (curTime.GetSeconds () - prevTime.GetSeconds ()));
-  thr << curTime << " " << throughput << std::endl;
-  lu << curTime << " " << throughput / bottleneckBandwidth.GetBitRate () * 8 << std::endl;
+  thr << curTime.GetSeconds () << " " << throughput << std::endl;
+  double link_util = (throughput * 1000 * 1000 / bottleneckBandwidth.GetBitRate ());
+  lu << curTime.GetSeconds () << " " << link_util << std::endl;
   prevTime = curTime;
   prev = itr->second.txBytes;
   Simulator::Schedule (Seconds (0.2), &TraceThroughputAndLU, monitor);
@@ -178,7 +176,7 @@ main (int argc, char *argv[])
   std::string recovery = "ns3::TcpClassicRecovery";
   QueueSize queueSize = QueueSize ("2084p");
 
-  DataRate bottleneckBandwidth ("100Mbps"); // 100Mbps for actual sims
+  bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
   Time bottleneckDelay = MilliSeconds (2);
   DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
   Time *accessLinkDelays = variedAccessLinkDelays (numNodes, 24);
