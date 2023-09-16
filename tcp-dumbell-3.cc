@@ -19,6 +19,8 @@
 //   See internet/doc/tcp.rst for more details.
 
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string>
 #include <fstream>
 #include <ctime>
@@ -36,8 +38,8 @@ std::string dir = "results/";
 Time stopTime = Seconds (200);
 Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
-uint32_t segmentSize = 524;
-uint32_t numNodes = 4;
+uint32_t segmentSize = 1500;
+uint32_t numNodes = 60;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -113,6 +115,26 @@ InstallPacketSink (Ptr<Node> node, uint16_t port, std::string socketFactory)
   sinkApps.Stop (stopTime);
 }
 
+// Function to calculate variable access link delay
+Time *
+variedAccessLinkDelays (int numNodes, int mean)
+{
+  Time *delays = (Time *) malloc (numNodes * sizeof (Time));
+
+  int sum = 0, x;
+  for (int i = 0; i < numNodes - 1; i++)
+    {
+      x = rand () % mean + 1;
+      sum += x;
+      delays[i] = MilliSeconds (x);
+    }
+
+  x = mean * numNodes - sum;
+  delays[numNodes - 1] = MilliSeconds (x);
+
+  return delays;
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -131,9 +153,9 @@ main (int argc, char *argv[])
   QueueSize queueSize = QueueSize ("2084p");
 
   DataRate bottleneckBandwidth ("100Mbps"); // 100Mbps for actual sims
-  Time bottleneckDelay = MilliSeconds (40);
-  DataRate regLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
-  Time regLinkDelay = MilliSeconds (5);
+  Time bottleneckDelay = MilliSeconds (1);
+  DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
+  Time *accessLinkDelays = variedAccessLinkDelays (numNodes, 49);
 
   CommandLine cmd;
   cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);
@@ -171,10 +193,10 @@ main (int argc, char *argv[])
 
   // Create the point-to-point link helpers and connect leaf nodes to router
   PointToPointHelper pointToPointLeaf;
-  pointToPointLeaf.SetDeviceAttribute ("DataRate", DataRateValue (regLinkBandwidth));
-  pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (regLinkDelay));
+  pointToPointLeaf.SetDeviceAttribute ("DataRate", DataRateValue (accessLinkBandwidth));
   for (uint32_t i = 0; i < numNodes; ++i)
     {
+      pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (accessLinkDelays[i]));
       leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (i), routers.Get (0)));
       routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (i)));
     }
@@ -210,7 +232,8 @@ main (int argc, char *argv[])
 
   // Set default sender and receiver buffer size as 1MB
   Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1 << 20));
-  Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (1 << 20));
+  // Receive buffer size is 1GB to allow for sufficiently large receiving window
+  Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (1 << 30));
 
   // Set default initial congestion window as 10 segments
   Config::SetDefault ("ns3::TcpSocket::InitialCwnd", UintegerValue (10));
