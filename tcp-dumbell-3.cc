@@ -32,6 +32,7 @@
 #include "ns3/point-to-point-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/traffic-control-module.h"
+#include "ns3/flow-monitor-module.h"
 
 using namespace ns3;
 std::string dir = "results/";
@@ -40,6 +41,9 @@ Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
 uint32_t numNodes = 60;
+uint32_t prev = 0;
+Time prevTime = Seconds (0);
+DataRate bottleneckBandwidth;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -135,6 +139,24 @@ variedAccessLinkDelays (int numNodes, int mean)
   return delays;
 }
 
+// Calculate throughput
+static void
+TraceThroughputAndLU (Ptr<FlowMonitor> monitor)
+{
+  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
+  auto itr = stats.begin ();
+  Time curTime = Now ();
+  std::ofstream thr (dir + "/throughput.dat", std::ios::out | std::ios::app);
+  std::ofstream lu (dir + "/linkUtilization.dat", std::ios::out | std::ios::app);
+  double throughput = 8 * (itr->second.txBytes - prev) /
+                      (1000 * 1000 * (curTime.GetSeconds () - prevTime.GetSeconds ()));
+  thr << curTime << " " << throughput << std::endl;
+  lu << curTime << " " << throughput / bottleneckBandwidth.GetBitRate () * 8 << std::endl;
+  prevTime = curTime;
+  prev = itr->second.txBytes;
+  Simulator::Schedule (Seconds (0.2), &TraceThroughput, monitor);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -152,7 +174,7 @@ main (int argc, char *argv[])
   std::string recovery = "ns3::TcpClassicRecovery";
   QueueSize queueSize = QueueSize ("2084p");
 
-  DataRate bottleneckBandwidth ("100Mbps"); // 100Mbps for actual sims
+  bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
   Time bottleneckDelay = MilliSeconds (1);
   DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
   Time *accessLinkDelays = variedAccessLinkDelays (numNodes, 49);
@@ -276,6 +298,8 @@ main (int argc, char *argv[])
   tch.Uninstall (routers.Get (0)->GetDevice (0));
   qd.Add (tch.Install (routers.Get (0)->GetDevice (0)).Get (0));
 
+  pointToPointRouter.DisableFlowControl ();
+
   // Enable BQL
   tch.SetQueueLimits ("ns3::DynamicQueueLimits");
 
@@ -304,6 +328,11 @@ main (int argc, char *argv[])
     }
   // Enable PCAP on all the point to point interfaces
   pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);
+
+  // Check for dropped packets using Flow Monitor
+  FlowMonitorHelper flowmon;
+  Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
+  Simulator::Schedule (tracingStartTime, &TraceThroughput, monitor);
 
   Simulator::Stop (stopTime);
   Simulator::Run ();

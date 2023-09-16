@@ -120,6 +120,7 @@ build_example(
     ${libapplications}
     ${libtraffic-control}
     ${libnetwork}
+    ${libflow-monitor}
 )
 
 build_example(
