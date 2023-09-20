@@ -152,7 +152,7 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor)
   double throughput = 8 * (itr->second.txBytes - prev) /
                       (1000 * 1000 * (curTime.GetSeconds () - prevTime.GetSeconds ()));
   thr << curTime.GetSeconds () << " " << throughput << std::endl;
-  double link_util = (throughput * 1000 * 1000 / bottleneckBandwidth.GetBitRate ());
+  double link_util = (throughput * 1000 * 1000 * 100 / bottleneckBandwidth.GetBitRate ());
   lu << curTime.GetSeconds () << " " << link_util << std::endl;
   prevTime = curTime;
   prev = itr->second.txBytes;
