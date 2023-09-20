@@ -217,6 +217,7 @@ main (int argc, char *argv[])
 
   // Create the point-to-point link helpers and connect leaf nodes to router
   PointToPointHelper pointToPointLeaf;
+  pointToPointLeaf.DisableFlowControl ();
   pointToPointLeaf.SetDeviceAttribute ("DataRate", DataRateValue (accessLinkBandwidth));
   for (uint32_t i = 0; i < numNodes; ++i)
     {
@@ -255,7 +256,7 @@ main (int argc, char *argv[])
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
   // Set default sender and receiver buffer size as 1MB
-  Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1 << 20));
+  Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1 << 30));
   // Receive buffer size is 1GB to allow for sufficiently large receiving window
   Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (1 << 30));
 
