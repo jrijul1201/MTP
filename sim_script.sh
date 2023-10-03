@@ -26,7 +26,7 @@ do
 for k in {0..5}
 
 do
-./ns3 run tcp-dumbell-3 -- --numNodes=${NODES[$i]} --tcpVarient=${TCP_FLAVOUR[j]} --roundTripTime=${RTT[k]}
+./ns3 run tcp-dumbell-3 -- --numNodes=${NODES[$i]} --tcpVariant=${TCP_FLAVOUR[j]} --roundTripTime=${RTT[k]}
 # # mv {queue,queue${RTT[$j]}}.tr
 # # mv {queuebw,queuebw${RTT[$j]}}.tr
 # # mv {queuelost,queuelost${RTT[$j]}}.tr
@@ -34,6 +34,7 @@ do
 # # mv {queuewin,queuewin${RTT[$j]}}
 # # moving the trace files to the directory associated with the buffer size 
 # # mv $buff queue${RTT[$j]}.tr queuebw${RTT[$j]}.tr queuelost${RTT[$j]}.tr queuelost1${RTT[$j]}.tr queuesize${RTT[$j]}.tr queuewin${RTT[$j]}
+echo "This config ran successfully:" ${NODES[$i]} ${TCP_FLAVOUR[j]} ${RTT[k]}
 done
 
 done

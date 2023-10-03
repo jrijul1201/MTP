@@ -61,8 +61,8 @@ CheckQueueSize (Ptr<QueueDisc> queue)
 {
   uint32_t qSize = queue->GetCurrentSize ().GetValue ();
 
-  // Check queue size every 1/100 of a second
-  Simulator::Schedule (Seconds (0.001), &CheckQueueSize, queue);
+  // Check queue size every 1/5 of a second
+  Simulator::Schedule (Seconds (0.2), &CheckQueueSize, queue);
   std::ofstream fPlotQueue (std::stringstream (dir + "queue-size.dat").str ().c_str (),
                             std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << qSize << std::endl;
@@ -184,7 +184,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("enableSack", "Flag to enable/disable sack in TCP", isSack);
   cmd.AddValue ("numNodes", "Number of nodes in the sender", numNodes);
   cmd.AddValue ("roundTripTime", "Round trip time of a network packet", rtt);
-  cmd.AddValue ("tcpVarient", "Type of tcp varient you want to use", tcpType);
+  cmd.AddValue ("tcpVariant", "Type of tcp varient you want to use", tcpType);
   cmd.AddValue ("stopTime", "Stop time for applications / simulation time will be stopTime",
                 stopTime);
   cmd.AddValue ("recovery", "Recovery algorithm type to use (e.g., ns3::TcpPrrRecovery", recovery);
@@ -193,9 +193,10 @@ main (int argc, char *argv[])
   dir += std::to_string(numNodes)+ "-" + tcpType + "-" + std::to_string(rtt) + "/";
 
   bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
-  Time bottleneckDelay = MilliSeconds (2);
+  Time bottleneckDelay = MilliSeconds (rtt * 0.01);
   DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
-  Time *accessLinkDelays = variedAccessLinkDelays (numNodes, (rtt-2)/4);
+  // 100 - 1 - 1 divided by 4
+  Time *accessLinkDelays = variedAccessLinkDelays (numNodes, (rtt * 0.24));
 
   TypeId qdTid;
   NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (qdiscTypeId, &qdTid),
