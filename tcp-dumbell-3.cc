@@ -292,8 +292,8 @@ main (int argc, char *argv[])
   std::string dirToSave = "mkdir -p " + dir;
   retVal = system (dirToSave.c_str ());
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
-  retVal = system ((dirToSave + "/pcap/").c_str ());
-  NS_ASSERT_MSG (retVal == 0, "Error in return value");
+  // retVal = system ((dirToSave + "/pcap/").c_str ());
+  // NS_ASSERT_MSG (retVal == 0, "Error in return value");
   retVal = system ((dirToSave + "/queueTraces/").c_str ());
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
   retVal = system ((dirToSave + "/cwndTraces/").c_str ());
@@ -336,7 +336,7 @@ main (int argc, char *argv[])
                        socketFactory, 2 + i, 0, MakeCallback (&CwndChange));
     }
   // Enable PCAP on all the point to point interfaces
-  pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);
+  // pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);
 
   // Check for dropped packets using Flow Monitor
   FlowMonitorHelper flowmon;
