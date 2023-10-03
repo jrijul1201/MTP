@@ -44,6 +44,8 @@ uint32_t numNodes = 60;
 uint32_t prev = 0;
 Time prevTime = Seconds (0);
 DataRate bottleneckBandwidth;
+uint32_t rtt =  100;
+std::string tcpType = "TcpNewReno";
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -166,7 +168,6 @@ main (int argc, char *argv[])
   std::stringstream ss;
   ss << now;
   std::string ts = ss.str ();
-  dir += ts + "/";
 
   uint32_t stream = 1;
   std::string socketFactory = "ns3::TcpSocketFactory";
@@ -176,21 +177,25 @@ main (int argc, char *argv[])
   std::string recovery = "ns3::TcpClassicRecovery";
   QueueSize queueSize = QueueSize ("2084p");
 
-  bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
-  Time bottleneckDelay = MilliSeconds (2);
-  DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
-  Time *accessLinkDelays = variedAccessLinkDelays (numNodes, 24);
-
   CommandLine cmd;
   cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);
   cmd.AddValue ("segmentSize", "TCP segment size (bytes)", segmentSize);
   cmd.AddValue ("delAckCount", "Delayed ack count", delAckCount);
   cmd.AddValue ("enableSack", "Flag to enable/disable sack in TCP", isSack);
   cmd.AddValue ("numNodes", "Number of nodes in the sender", numNodes);
+  cmd.AddValue ("roundTripTime", "Round trip time of a network packet", rtt);
+  cmd.AddValue ("tcpVarient", "Type of tcp varient you want to use", tcpType);
   cmd.AddValue ("stopTime", "Stop time for applications / simulation time will be stopTime",
                 stopTime);
   cmd.AddValue ("recovery", "Recovery algorithm type to use (e.g., ns3::TcpPrrRecovery", recovery);
   cmd.Parse (argc, argv);
+
+  dir += std::to_string(numNodes)+ "-" + tcpType + "-" + std::to_string(rtt) + "/";
+
+  bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
+  Time bottleneckDelay = MilliSeconds (2);
+  DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
+  Time *accessLinkDelays = variedAccessLinkDelays (numNodes, (rtt-2)/4);
 
   TypeId qdTid;
   NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (qdiscTypeId, &qdTid),
@@ -214,11 +219,13 @@ main (int argc, char *argv[])
   pointToPointRouter.SetDeviceAttribute ("DataRate", DataRateValue (bottleneckBandwidth));
   pointToPointRouter.SetChannelAttribute ("Delay", TimeValue (bottleneckDelay));
   NetDeviceContainer r1r2ND = pointToPointRouter.Install (routers.Get (0), routers.Get (1));
+  pointToPointRouter.DisableFlowControl ();
 
   // Create the point-to-point link helpers and connect leaf nodes to router
   PointToPointHelper pointToPointLeaf;
   pointToPointLeaf.DisableFlowControl ();
   pointToPointLeaf.SetDeviceAttribute ("DataRate", DataRateValue (accessLinkBandwidth));
+  pointToPointLeaf.DisableFlowControl ();
   for (uint32_t i = 0; i < numNodes; ++i)
     {
       pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (accessLinkDelays[i]));
@@ -254,9 +261,10 @@ main (int argc, char *argv[])
     }
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+  Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue ("ns3::"+tcpType));
 
   // Set default sender and receiver buffer size as 1MB
-  Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1 << 30));
+  Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1 << 27));
   // Receive buffer size is 1GB to allow for sufficiently large receiving window
   Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (1 << 30));
 
@@ -270,7 +278,7 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (segmentSize));
 
   // Enable/Disable SACK in TCP
-  Config::SetDefault ("ns3::TcpSocketBase::Sack", BooleanValue (isSack));
+  // Config::SetDefault ("ns3::TcpSocketBase::Sack", BooleanValue (isSack));
 
   // Create directories to store dat files
   struct stat buffer;
@@ -300,8 +308,6 @@ main (int argc, char *argv[])
   QueueDiscContainer qd;
   tch.Uninstall (routers.Get (0)->GetDevice (0));
   qd.Add (tch.Install (routers.Get (0)->GetDevice (0)).Get (0));
-
-  pointToPointRouter.DisableFlowControl ();
 
   // Enable BQL
   tch.SetQueueLimits ("ns3::DynamicQueueLimits");
