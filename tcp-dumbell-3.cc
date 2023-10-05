@@ -144,7 +144,7 @@ variedAccessLinkDelays (int numNodes, int mean)
 
 // Calculate throughput and link utilisation
 static void
-TraceThroughputAndLU (Ptr<FlowMonitor> monitor)
+TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
 {
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
   Time currTime = Now ();
@@ -154,6 +154,9 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor)
   // aggregate txBytes for first half flows (going towards sink):
   for (auto itr = stats.begin (); count > 0; ++itr, --count)
     {
+      Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
+      // std::cout << "Flow " << itr->first << " (" << t.sourceAddress << " -> "
+      //           << t.destinationAddress << ")\n";
       currBytes += itr->second.txBytes;
     }
 
@@ -170,7 +173,7 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor)
   prevTime = currTime;
   prevBytes = currBytes;
 
-  Simulator::Schedule (Seconds (0.2), &TraceThroughputAndLU, monitor);
+  Simulator::Schedule (Seconds (0.2), &TraceThroughputAndLU, monitor, classifier);
 }
 
 int
@@ -354,7 +357,8 @@ main (int argc, char *argv[])
   // Check for dropped packets using Flow Monitor
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
-  Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor);
+  Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
+  Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier);
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
