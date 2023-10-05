@@ -36,15 +36,16 @@
 
 using namespace ns3;
 std::string dir = "results/";
-Time stopTime = Seconds (200);
-Time tracingDuration = Seconds (25);
+Time stopTime = Seconds (20);
+Time tracingDuration = Seconds (5);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
-uint32_t numNodes = 60;
-uint32_t prev = 0;
+uint32_t numNodes = 1;
+uint32_t prevBytes = 0;
+uint32_t currBytes = 0;
 Time prevTime = Seconds (0);
 DataRate bottleneckBandwidth;
-uint32_t rtt =  100;
+uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
 
 static uint32_t
@@ -146,18 +147,24 @@ static void
 TraceThroughputAndLU (Ptr<FlowMonitor> monitor)
 {
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
-  auto itr = stats.begin ();
-  Time curTime = Now ();
+  currBytes = 0;
+  auto count = stats.size () / 2;
+  // aggregate txBytes for first half flows (going towards sink):
+  for (auto itr = stats.begin (); count > 0; ++itr, --count)
+    {
+      currBytes += itr->second.txBytes;
+    }
+  Time currTime = Now ();
   std::ofstream thr (dir + "/throughput.dat", std::ios::out | std::ios::app);
   std::ofstream lu (dir + "/linkUtilization.dat", std::ios::out | std::ios::app);
   // Throughput is in MegaBits/Second
-  double throughput = 8 * (itr->second.txBytes - prev) /
-                      (1000 * 1000 * (curTime.GetSeconds () - prevTime.GetSeconds ()));
-  thr << curTime.GetSeconds () << " " << throughput << std::endl;
+  double throughput = 8 * (currBytes - prevBytes) /
+                      (1000 * 1000 * (currTime.GetSeconds () - prevTime.GetSeconds ()));
+  thr << currTime.GetSeconds () << " " << throughput << std::endl;
   double link_util = (throughput * 1000 * 1000 * 100 / bottleneckBandwidth.GetBitRate ());
-  lu << curTime.GetSeconds () << " " << link_util << std::endl;
-  prevTime = curTime;
-  prev = itr->second.txBytes;
+  lu << currTime.GetSeconds () << " " << link_util << std::endl;
+  prevTime = currTime;
+  prevBytes = currBytes;
   Simulator::Schedule (Seconds (0.2), &TraceThroughputAndLU, monitor);
 }
 
@@ -190,7 +197,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("recovery", "Recovery algorithm type to use (e.g., ns3::TcpPrrRecovery", recovery);
   cmd.Parse (argc, argv);
 
-  dir += std::to_string(numNodes)+ "-" + tcpType + "-" + std::to_string(rtt) + "/";
+  dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "/";
 
   bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
   Time bottleneckDelay = MilliSeconds (rtt * 0.01);
@@ -262,7 +269,7 @@ main (int argc, char *argv[])
     }
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
-  Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue ("ns3::"+tcpType));
+  Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue ("ns3::" + tcpType));
 
   // Set default sender and receiver buffer size as 1MB
   Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1 << 27));
