@@ -36,11 +36,11 @@
 
 using namespace ns3;
 std::string dir = "results/";
-Time stopTime = Seconds (20);
-Time tracingDuration = Seconds (5);
+Time stopTime = Seconds (200);
+Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
-uint32_t numNodes = 1;
+uint32_t numNodes = 60;
 uint32_t prevBytes = 0;
 uint32_t currBytes = 0;
 Time prevTime = Seconds (0);
@@ -142,11 +142,13 @@ variedAccessLinkDelays (int numNodes, int mean)
   return delays;
 }
 
-// Calculate throughput
+// Calculate throughput and link utilisation
 static void
 TraceThroughputAndLU (Ptr<FlowMonitor> monitor)
 {
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
+  Time currTime = Now ();
+
   currBytes = 0;
   auto count = stats.size () / 2;
   // aggregate txBytes for first half flows (going towards sink):
@@ -154,17 +156,20 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor)
     {
       currBytes += itr->second.txBytes;
     }
-  Time currTime = Now ();
-  std::ofstream thr (dir + "/throughput.dat", std::ios::out | std::ios::app);
-  std::ofstream lu (dir + "/linkUtilization.dat", std::ios::out | std::ios::app);
+
   // Throughput is in MegaBits/Second
   double throughput = 8 * (currBytes - prevBytes) /
                       (1000 * 1000 * (currTime.GetSeconds () - prevTime.GetSeconds ()));
-  thr << currTime.GetSeconds () << " " << throughput << std::endl;
   double link_util = (throughput * 1000 * 1000 * 100 / bottleneckBandwidth.GetBitRate ());
+
+  std::ofstream thr (dir + "/throughput.dat", std::ios::out | std::ios::app);
+  std::ofstream lu (dir + "/linkUtilization.dat", std::ios::out | std::ios::app);
+  thr << currTime.GetSeconds () << " " << throughput << std::endl;
   lu << currTime.GetSeconds () << " " << link_util << std::endl;
+
   prevTime = currTime;
   prevBytes = currBytes;
+
   Simulator::Schedule (Seconds (0.2), &TraceThroughputAndLU, monitor);
 }
 
