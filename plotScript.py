@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
     
 absolute_path = "/home/dipesh/ns-allinone-3.36.1/ns-3.36.1/" + folder_name
 
-plot_path = absolute_path+ "/plots"+folder_name
+plot_path = absolute_path+ "/plots"
 
 cwnd_folder = absolute_path + "/cwndTraces"
 
@@ -18,7 +18,7 @@ def plotAndSaveGraph(xValue, yValue, title, xLabel, yLabel, filepath):
     plt.ylabel(yLabel)
     plt.title(title)
     plt.savefig(filepath)
-    return
+    plt.show()
 
 def readDatFileAndConvertToDataFrame(path, baseName):
     df = pd.read_csv(path, delimiter=' ', header=None)
