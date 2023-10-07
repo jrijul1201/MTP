@@ -4,9 +4,9 @@
 # SM Aug 2015
 # 2 factors: buffer size and RTT
 # generates tracefiles for each value of buffer size and RTT. All simulations corresponding to a given buffer size are clubbed in a directory named after the buffer size. 
-# NODES=(1)
-# TCP_FLAVOUR=("TcpNewReno")
-# RTT=(10)
+NODES=(1)
+TCP_FLAVOUR=("TcpNewReno")
+RTT=(10)
 # NODES=(80)
 # TCP_FLAVOUR=("TcpNewReno" "TcpBbr" "TcpCubic")
 # RTT=(10 50 100 150 200)
@@ -18,15 +18,16 @@ cd ../../
 # for i in {0..1}
 # do
 # # # second loop iterates over TCP flavours
-# for j in {0..3}
+# for j in {0..1}
 # # # third loop iterate over RTT
 
 # do
 
-# for k in {0..5}
+# for k in {0..1}
 
 # do
-# ./ns3 run tcp-dumbell-3 -- --numNodes=${NODES[$i]} --tcpVariant=${TCP_FLAVOUR[j]} --roundTripTime=${RTT[k]}
+# # ./ns3 run tcp-dumbell-3 -- --numNodes=${NODES[$i]} --tcpVariant=${TCP_FLAVOUR[j]} --roundTripTime=${RTT[k]}
+# # mkdir examples/results/${NODES[$i]}-${TCP_FLAVOUR[j]}-${RTT[k]}
 # # # mv {queue,queue${RTT[$j]}}.tr
 # # # mv {queuebw,queuebw${RTT[$j]}}.tr
 # # # mv {queuelost,queuelost${RTT[$j]}}.tr
@@ -34,17 +35,24 @@ cd ../../
 # # # mv {queuewin,queuewin${RTT[$j]}}
 # # # moving the trace files to the directory associated with the buffer size 
 # # # mv $buff queue${RTT[$j]}.tr queuebw${RTT[$j]}.tr queuelost${RTT[$j]}.tr queuelost1${RTT[$j]}.tr queuesize${RTT[$j]}.tr queuewin${RTT[$j]}
-# echo "This config ran successfully:" ${NODES[$i]} ${TCP_FLAVOUR[j]} ${RTT[k]}
+# # echo "This config ran successfully:" ${NODES[$i]} ${TCP_FLAVOUR[j]} ${RTT[k]}
 # done
 
 # done
 
 # done
 
-for folder in results/*
+cd examples/results/
+
+for folder in *
 do
-cd results/${folder}/
-sudo mkdir plots
-ls
-echo ${folder} | python3 examples/tcp/plotScript.py
+rm -rf plots
+mkdir ${folder}/plots/
+cd ../tcp
+echo ${folder} | python3 plotScript.py
+cd ../results
 done
+
+git add .
+git commit -m "updated plots"
+git push

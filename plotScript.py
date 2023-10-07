@@ -4,21 +4,19 @@ folder_name = input("Enter the name of the folder: ")
 
 import matplotlib.pyplot as plt
     
-absolute_path = "/home/dipesh/ns-allinone-3.36.1/ns-3.36.1/" + folder_name
+absolute_path = "/home/dipesh/ns-allinone-3.36.1/ns-3.36.1/examples/results/" + folder_name
 
 plot_path = absolute_path+ "/plots"
 
 cwnd_folder = absolute_path + "/cwndTraces"
 
-os.mkdir(plot_path)
-
 def plotAndSaveGraph(xValue, yValue, title, xLabel, yLabel, filepath):
-    plt.plot(xValue, yValue, linestyle='-')
-    plt.xlabel(xLabel)
-    plt.ylabel(yLabel)
-    plt.title(title)
-    plt.savefig(filepath)
-    plt.show()
+    fig, ax = plt.subplots()
+    ax.plot(xValue, yValue, linestyle='-')
+    ax.set_xlabel(xLabel)
+    ax.set_ylabel(yLabel)
+    ax.set_title(title)
+    fig.savefig(filepath)
 
 def readDatFileAndConvertToDataFrame(path, baseName):
     df = pd.read_csv(path, delimiter=' ', header=None)

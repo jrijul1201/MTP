@@ -35,7 +35,7 @@
 #include "ns3/flow-monitor-module.h"
 
 using namespace ns3;
-std::string dir = "results/";
+std::string dir = "examples/results/";
 Time stopTime = Seconds (200);
 Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
