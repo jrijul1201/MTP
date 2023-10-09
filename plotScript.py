@@ -1,10 +1,8 @@
 import os
 import pandas as pd
-folder_name = input("Enter the name of the folder: ")
+absolute_path = input("Enter the name of the folder: ")
 
 import matplotlib.pyplot as plt
-    
-absolute_path = "/home/dipesh/ns-allinone-3.36.1/ns-3.36.1/examples/results/" + folder_name
 
 plot_path = absolute_path+ "/plots"
 
