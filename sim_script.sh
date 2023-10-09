@@ -11,14 +11,14 @@ RTT=(10)
 # TCP_FLAVOUR=("TcpNewReno" "TcpBbr" "TcpCubic")
 # RTT=(10 50 100 150 200)
 
-# cd ../results/
-# rm -rf *
-# git add .
-# git commit -m "cleaned results"
-# git pull origin master
-# rm -rf *
-# git add .
-# git commit -m "cleaned results"
+cd ../results/
+rm -rf *
+git add .
+git commit -m "cleaned results"
+git pull origin master
+rm -rf *
+git add .
+git commit -m "cleaned results"
 
 cd ../../
 
