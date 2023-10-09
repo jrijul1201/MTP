@@ -23,33 +23,33 @@ RTT=(10)
 cd ../../
 
 
-# # first loop iterates over nodes
-# for i in {0..0}
-# do
-# # # second loop iterates over TCP flavours
-# for j in {0..0}
-# # # third loop iterate over RTT
+# first loop iterates over nodes
+for i in {0..0}
+do
+# # second loop iterates over TCP flavours
+for j in {0..0}
+# # third loop iterate over RTT
 
-# do
+do
 
-# for k in {0..0}
+for k in {0..0}
 
-# do
-# ./ns3 run tcp-dumbell-3 -- --numNodes=${NODES[$i]} --tcpVariant=${TCP_FLAVOUR[j]} --roundTripTime=${RTT[k]}
-# # mkdir examples/results/${NODES[$i]}-${TCP_FLAVOUR[j]}-${RTT[k]}
-# # # mv {queue,queue${RTT[$j]}}.tr
-# # # mv {queuebw,queuebw${RTT[$j]}}.tr
-# # # mv {queuelost,queuelost${RTT[$j]}}.tr
-# # # mv {queuesize,queuesize${RTT[$j]}}.tr
-# # # mv {queuewin,queuewin${RTT[$j]}}
-# # # moving the trace files to the directory associated with the buffer size 
-# # # mv $buff queue${RTT[$j]}.tr queuebw${RTT[$j]}.tr queuelost${RTT[$j]}.tr queuelost1${RTT[$j]}.tr queuesize${RTT[$j]}.tr queuewin${RTT[$j]}
-# # echo "This config ran successfully:" ${NODES[$i]} ${TCP_FLAVOUR[j]} ${RTT[k]}
-# done
+do
+./ns3 run tcp-dumbell-3 -- --numNodes=${NODES[$i]} --tcpVariant=${TCP_FLAVOUR[j]} --roundTripTime=${RTT[k]}
+# mkdir examples/results/${NODES[$i]}-${TCP_FLAVOUR[j]}-${RTT[k]}
+# # mv {queue,queue${RTT[$j]}}.tr
+# # mv {queuebw,queuebw${RTT[$j]}}.tr
+# # mv {queuelost,queuelost${RTT[$j]}}.tr
+# # mv {queuesize,queuesize${RTT[$j]}}.tr
+# # mv {queuewin,queuewin${RTT[$j]}}
+# # moving the trace files to the directory associated with the buffer size 
+# # mv $buff queue${RTT[$j]}.tr queuebw${RTT[$j]}.tr queuelost${RTT[$j]}.tr queuelost1${RTT[$j]}.tr queuesize${RTT[$j]}.tr queuewin${RTT[$j]}
+# echo "This config ran successfully:" ${NODES[$i]} ${TCP_FLAVOUR[j]} ${RTT[k]}
+done
 
-# done
+done
 
-# done
+done
 
 cd examples/results/
 for folder in *
