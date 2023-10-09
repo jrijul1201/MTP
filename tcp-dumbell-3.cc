@@ -151,13 +151,13 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifi
 
   currBytes = 0;
   auto count = stats.size () / 2;
-  // aggregate txBytes for first half flows (going towards sink):
+  // aggregate rxBytes for first half flows (going towards sink):
   for (auto itr = stats.begin (); count > 0; ++itr, --count)
     {
       Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
       // std::cout << "Flow " << itr->first << " (" << t.sourceAddress << " -> "
       //           << t.destinationAddress << ")\n";
-      currBytes += itr->second.txBytes;
+      currBytes += itr->second.rxBytes;
     }
 
   // Throughput is in MegaBits/Second
@@ -173,7 +173,7 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifi
   prevTime = currTime;
   prevBytes = currBytes;
 
-  Simulator::Schedule (Seconds (0.2), &TraceThroughputAndLU, monitor, classifier);
+  Simulator::Schedule (Seconds (0.0001 * rtt), &TraceThroughputAndLU, monitor, classifier);
 }
 
 int
