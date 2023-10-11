@@ -47,6 +47,7 @@ Time prevTime = Seconds (0);
 DataRate bottleneckBandwidth;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
+bool isThresholdAQMEnabled = true;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -191,6 +192,18 @@ main (int argc, char *argv[])
   uint32_t delAckCount = 1;
   std::string recovery = "ns3::TcpClassicRecovery";
   QueueSize queueSize = QueueSize ("2084p");
+  
+  if (isThresholdAQMEnabled)
+    {
+      if (tcpType == "TcpNewReno")
+        {
+          queueSize = QueueSize ("15p");
+        }
+      else
+        {
+          queueSize = QueueSize ("50p");
+        }
+    }
 
   CommandLine cmd;
   cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);
