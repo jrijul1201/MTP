@@ -174,7 +174,7 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifi
   prevTime = currTime;
   prevBytes = currBytes;
 
-  Simulator::Schedule (Seconds (0.0001 * rtt), &TraceThroughputAndLU, monitor, classifier);
+  Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughputAndLU, monitor, classifier);
 }
 
 int
