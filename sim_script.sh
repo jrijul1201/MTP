@@ -32,7 +32,7 @@ do
 for k in {0..4}
 
 do
-./ns3 run tcp-dumbell-3 -- --numNodes=${NODES[$i]} --tcpVariant=${TCP_FLAVOUR[j]} --roundTripTime=${RTT[k]}
+./ns3 run single-bottleneck-dumbbell-topology -- --numNodes=${NODES[$i]} --tcpVariant=${TCP_FLAVOUR[j]} --roundTripTime=${RTT[k]}
 # mkdir examples/results/${NODES[$i]}-${TCP_FLAVOUR[j]}-${RTT[k]}
 # # mv {queue,queue${RTT[$j]}}.tr
 # # mv {queuebw,queuebw${RTT[$j]}}.tr

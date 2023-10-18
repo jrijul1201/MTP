@@ -112,8 +112,20 @@ build_example(
 )
 
 build_example(
-  NAME tcp-dumbell-3
-  SOURCE_FILES tcp-dumbell-3.cc
+  NAME single-bottleneck-dumbbell-topology
+  SOURCE_FILES single-bottleneck-dumbbell-topology.cc
+  LIBRARIES_TO_LINK
+    ${libpoint-to-point}
+    ${libinternet}
+    ${libapplications}
+    ${libtraffic-control}
+    ${libnetwork}
+    ${libflow-monitor}
+)
+
+build_example(
+  NAME parking-lot-topology
+  SOURCE_FILES parking-lot-topology.cc
   LIBRARIES_TO_LINK
     ${libpoint-to-point}
     ${libinternet}
