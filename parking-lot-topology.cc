@@ -1,22 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-// Network topology
-//
-//       n0 ---------- n1 ---------- n2 ---------- n3
-//            10 Mbps       1 Mbps        10 Mbps
-//             1 ms         10 ms          1 ms
-//
-// - TCP flow from n0 to n3 using BulkSendApplication.
-// - The following simulation output is stored in results/ in ns-3 top-level directory:
-//   - cwnd traces are stored in cwndTraces folder
-//   - queue length statistics are stored in queue-size.dat file
-//   - pcaps are stored in pcap folder
-//   - queueTraces folder contain the drop statistics at queue
-//   - queueStats.txt file contains the queue stats and config.txt file contains
-//     the simulation configuration.
-// - The cwnd and queue length traces obtained from this example were tested against
-//   the respective traces obtained from Linux Reno by using ns-3 Direct Code Execution.
-//   See internet/doc/tcp.rst for more details.
+// Parking Lot Topology: https://arxiv.org/pdf/1907.06302.pdf
 
 #include <iostream>
 #include <stdio.h>
