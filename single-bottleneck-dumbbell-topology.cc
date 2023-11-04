@@ -37,11 +37,11 @@
 
 using namespace ns3;
 std::string dir = "examples/results/";
-Time stopTime = Seconds (200);
-Time tracingDuration = Seconds (25);
+Time stopTime = Seconds (10);
+Time tracingDuration = Seconds (5);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
-uint32_t numNodes = 60;
+uint32_t numNodes = 4;
 DataRate bottleneckBandwidth;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
@@ -53,6 +53,20 @@ GetNodeIdFromContext (std::string context)
   std::size_t const n1 = context.find_first_of ("/", 1);
   std::size_t const n2 = context.find_first_of ("/", n1 + 1);
   return std::stoul (context.substr (n1 + 1, n2 - n1 - 1));
+}
+
+// Function to check queue length of Router 1
+void
+CheckQueueSize (Ptr<QueueDisc> queue)
+{
+  uint32_t qSize = queue->GetCurrentSize ().GetValue ();
+
+  // Check queue size every 1/5 of a second
+  Simulator::Schedule (Seconds (0.2), &CheckQueueSize, queue);
+  std::ofstream fPlotQueue (std::stringstream (dir + "queue-size.dat").str ().c_str (),
+                            std::ios::out | std::ios::app);
+  fPlotQueue << Simulator::Now ().GetSeconds () << " " << qSize << std::endl;
+  fPlotQueue.close ();
 }
 
 // Function to trace change in cwnd at n0
@@ -125,6 +139,42 @@ variedAccessLinkDelays (int numNodes, int mean)
   delays[numNodes - 1] = MilliSeconds (x);
 
   return delays;
+}
+
+// Calculate throughput and link utilisation
+static void
+TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier,
+                      P2PRouter *p2prouter)
+{
+  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
+  Time currTime = Now ();
+  uint32_t currBytes = 0;
+
+  auto count = stats.size () / 2;
+  // aggregate rxBytes for first half flows (going towards sink):
+  for (auto itr = stats.begin (); count > 0; ++itr, --count)
+    {
+      Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
+      // std::cout << "Flow " << itr->first << " (" << t.sourceAddress << " -> "
+      //           << t.destinationAddress << ")\n";
+      currBytes += itr->second.rxBytes;
+    }
+
+  // Throughput is in MegaBits/Second
+  double throughput = 8 * (currBytes - p2prouter->prevBytes) /
+                      (1000 * 1000 * (currTime.GetSeconds () - p2prouter->prevTime.GetSeconds ()));
+  double link_util = (throughput * 1000 * 1000 * 100 / p2prouter->linkBandwidth.GetBitRate ());
+
+  std::ofstream thr (dir + "/throughput.dat", std::ios::out | std::ios::app);
+  std::ofstream lu (dir + "/linkUtilization.dat", std::ios::out | std::ios::app);
+  thr << currTime.GetSeconds () << " " << throughput << std::endl;
+  lu << currTime.GetSeconds () << " " << link_util << std::endl;
+
+  p2prouter->prevTime = currTime;
+  p2prouter->prevBytes = currBytes;
+
+  Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughputAndLU, monitor, classifier,
+                       p2prouter);
 }
 
 int
@@ -205,7 +255,7 @@ main (int argc, char *argv[])
   // TODO: For N > 3.2k, change bitmask to accomodate larger network
   Ipv4AddressHelper ipAddresses ("10.0.0.0", "255.255.0.0");
 
-  Ipv4InterfaceContainer r1r2IPAddress = ipAddresses.Assign (p2prouter->r1r2ND);
+  Ipv4InterfaceContainer r1r2IPAddress = ipAddresses.Assign (p2prouter->netDevice);
   ipAddresses.NewNetwork ();
 
   std::vector<Ipv4InterfaceContainer> leftToRouterIPAddress;
@@ -262,7 +312,7 @@ main (int argc, char *argv[])
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
 
   // Calls function to check queue size
-  Simulator::Schedule (tracingStartTime, &P2PRouter::CheckQueueSize, p2prouter->qd.Get (0), dir);
+  Simulator::Schedule (tracingStartTime, &CheckQueueSize, p2prouter->qd.Get (0));
   AsciiTraceHelper asciiTraceHelper;
   Ptr<OutputStreamWrapper> streamWrapper;
 
@@ -291,7 +341,7 @@ main (int argc, char *argv[])
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
-  Simulator::Schedule (tracingStartTime, &P2PRouter::TraceThroughputAndLU, monitor, classifier);
+  Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier, p2prouter);
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
