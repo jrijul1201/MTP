@@ -224,7 +224,7 @@ main (int argc, char *argv[])
 
   // Create nodes
   NodeContainer leftNodes, rightNodes;
-  P2PRouter *p2prouter = new P2PRouter (rtt, dir, queueSize);
+  P2PRouter *p2prouter = new P2PRouter (rtt, dir, queueSize, bottleneckBandwidth, qdiscTypeId);
   leftNodes.Create (numNodes);
   rightNodes.Create (numNodes);
 
@@ -327,7 +327,7 @@ main (int argc, char *argv[])
   uint16_t port = 50000;
   for (uint32_t i = 0; i < numNodes; i++)
     {
-      InstallPacketSink (rightNodes.Get (i), port, "ns3::TcpSocketFactory");
+      InstallPacketSink (rightNodes.Get (i), port, socketFactory);
     }
   // Install BulkSend application for N nodes
   for (uint32_t i = 0; i < numNodes; i++)

@@ -24,14 +24,11 @@ public:
   DataRate linkBandwidth;
   uint32_t prevBytes;
   Time prevTime;
-  uint32_t stream;
-  std::string socketFactory;
   std::string qdiscTypeId;
   std::string dir;
   QueueSize queueSize;
   TypeId qdTid;
   uint32_t rtt;
-  std::string tcpType;
 
   NodeContainer routers;
   // Create the point-to-point link helpers and connect two router nodes
@@ -42,22 +39,17 @@ public:
 
   // Constructor
   P2PRouter (uint32_t rtt, std::string dir, QueueSize queueSize = QueueSize ("2084p"),
-             DataRate linkBandwidth = DataRate ("100Mbps"), uint32_t prevBytes = 0,
-             Time prevTime = Seconds (0), uint32_t stream = 1,
-             std::string socketFactory = "ns3::TcpSocketFactory",
-             std::string qdiscTypeId = "ns3::FifoQueueDisc", std::string tcpType = "TcpNewReno")
+             DataRate linkBandwidth = DataRate ("100Mbps"),
+             std::string qdiscTypeId = "ns3::FifoQueueDisc")
   {
     this->linkBandwidth = linkBandwidth;
     this->linkDelay = MilliSeconds (rtt * 0.01);
-    this->stream = stream;
     this->dir = dir;
     this->rtt = rtt;
-    this->socketFactory = socketFactory;
     this->qdiscTypeId = qdiscTypeId;
     this->queueSize = queueSize;
-    this->prevBytes = prevBytes;
-    this->prevTime = prevTime;
-    this->tcpType = tcpType;
+    this->prevBytes = 0;
+    this->prevTime = Seconds (0);
 
     NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (qdiscTypeId, &qdTid),
                          "TypeId " << qdiscTypeId << " not found");
