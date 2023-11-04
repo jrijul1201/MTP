@@ -41,23 +41,24 @@ public:
   TrafficControlHelper tch;
 
   // Constructor
-  P2PRouter (uint32_t rtt, std::string dir, DataRate linkBandwidth = DataRate ("100Mbps"),
-             uint32_t prevBytes = 0, Time prevTime = Seconds (0), uint32_t stream = 1,
+  P2PRouter (uint32_t rtt, std::string dir, QueueSize queueSize = QueueSize ("2084p"),
+             DataRate linkBandwidth = DataRate ("100Mbps"), uint32_t prevBytes = 0,
+             Time prevTime = Seconds (0), uint32_t stream = 1,
              std::string socketFactory = "ns3::TcpSocketFactory",
-             std::string qdiscTypeId = "ns3::FifoQueueDisc",
-             QueueSize queueSize = QueueSize ("2084p"), std::string tcpType = "TcpNewReno")
+             std::string qdiscTypeId = "ns3::FifoQueueDisc", std::string tcpType = "TcpNewReno")
   {
-    linkBandwidth = linkBandwidth;
-    linkDelay = MilliSeconds (rtt * 0.01);
-    stream = stream;
-    dir = dir;
-    rtt = rtt;
-    socketFactory = socketFactory;
-    qdiscTypeId = qdiscTypeId;
-    queueSize = queueSize;
-    prevBytes = prevBytes;
-    prevTime = prevTime;
-    tcpType = tcpType;
+    this->linkBandwidth = linkBandwidth;
+    this->linkDelay = MilliSeconds (rtt * 0.01);
+    this->stream = stream;
+    this->dir = dir;
+    this->rtt = rtt;
+    this->socketFactory = socketFactory;
+    this->qdiscTypeId = qdiscTypeId;
+    this->queueSize = queueSize;
+    this->prevBytes = prevBytes;
+    this->prevTime = prevTime;
+    this->tcpType = tcpType;
+
     NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (qdiscTypeId, &qdTid),
                          "TypeId " << qdiscTypeId << " not found");
     routers.Create (2);
@@ -66,7 +67,11 @@ public:
     pointToPointRouter.SetChannelAttribute ("Delay", TimeValue (linkDelay));
     netDevice = pointToPointRouter.Install (routers.Get (0), routers.Get (1));
     pointToPointRouter.DisableFlowControl ();
+  }
 
+  void
+  installQueueDiscipline ()
+  {
     // Set default parameters for queue discipline
     Config::SetDefault (qdiscTypeId + "::MaxSize", QueueSizeValue (queueSize));
 

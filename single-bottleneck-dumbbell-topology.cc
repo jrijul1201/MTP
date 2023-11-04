@@ -224,7 +224,7 @@ main (int argc, char *argv[])
 
   // Create nodes
   NodeContainer leftNodes, rightNodes;
-  P2PRouter *p2prouter = new P2PRouter (rtt, dir);
+  P2PRouter *p2prouter = new P2PRouter (rtt, dir, queueSize);
   leftNodes.Create (numNodes);
   rightNodes.Create (numNodes);
 
@@ -310,6 +310,8 @@ main (int argc, char *argv[])
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
   retVal = system ((dirToSave + "/cwndTraces/").c_str ());
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
+
+  p2prouter->installQueueDiscipline ();
 
   // Calls function to check queue size
   Simulator::Schedule (tracingStartTime, &CheckQueueSize, p2prouter->qd.Get (0));
