@@ -1,6 +1,22 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-// Parking Lot Topology: https://arxiv.org/pdf/1907.06302.pdf
+// Network topology
+//
+//       n0 ---------- n1 ---------- n2 ---------- n3
+//            10 Mbps       1 Mbps        10 Mbps
+//             1 ms         10 ms          1 ms
+//
+// - TCP flow from n0 to n3 using BulkSendApplication.
+// - The following simulation output is stored in results/ in ns-3 top-level directory:
+//   - cwnd traces are stored in cwndTraces folder
+//   - queue length statistics are stored in queue-size.dat file
+//   - pcaps are stored in pcap folder
+//   - queueTraces folder contain the drop statistics at queue
+//   - queueStats.txt file contains the queue stats and config.txt file contains
+//     the simulation configuration.
+// - The cwnd and queue length traces obtained from this example were tested against
+//   the respective traces obtained from Linux Reno by using ns-3 Direct Code Execution.
+//   See internet/doc/tcp.rst for more details.
 
 #include <iostream>
 #include <stdio.h>
@@ -17,17 +33,15 @@
 #include "ns3/applications-module.h"
 #include "ns3/traffic-control-module.h"
 #include "ns3/flow-monitor-module.h"
+#include "router.h"
 
 using namespace ns3;
 std::string dir = "examples/results/";
-Time stopTime = Seconds (200);
-Time tracingDuration = Seconds (25);
+Time stopTime = Seconds (10);
+Time tracingDuration = Seconds (5);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
-uint32_t numNodes = 60;
-uint32_t prevBytes = 0;
-uint32_t currBytes = 0;
-Time prevTime = Seconds (0);
+uint32_t numNodes = 4;
 DataRate bottleneckBandwidth;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
@@ -129,12 +143,13 @@ variedAccessLinkDelays (int numNodes, int mean)
 
 // Calculate throughput and link utilisation
 static void
-TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
+TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier,
+                      P2PRouter *p2prouter)
 {
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
   Time currTime = Now ();
+  uint32_t currBytes = 0;
 
-  currBytes = 0;
   auto count = stats.size () / 2;
   // aggregate rxBytes for first half flows (going towards sink):
   for (auto itr = stats.begin (); count > 0; ++itr, --count)
@@ -146,37 +161,32 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifi
     }
 
   // Throughput is in MegaBits/Second
-  double throughput = 8 * (currBytes - prevBytes) /
-                      (1000 * 1000 * (currTime.GetSeconds () - prevTime.GetSeconds ()));
-  double link_util = (throughput * 1000 * 1000 * 100 / bottleneckBandwidth.GetBitRate ());
+  double throughput = 8 * (currBytes - p2prouter->prevBytes) /
+                      (1000 * 1000 * (currTime.GetSeconds () - p2prouter->prevTime.GetSeconds ()));
+  double link_util = (throughput * 1000 * 1000 * 100 / p2prouter->linkBandwidth.GetBitRate ());
 
   std::ofstream thr (dir + "/throughput.dat", std::ios::out | std::ios::app);
   std::ofstream lu (dir + "/linkUtilization.dat", std::ios::out | std::ios::app);
   thr << currTime.GetSeconds () << " " << throughput << std::endl;
   lu << currTime.GetSeconds () << " " << link_util << std::endl;
 
-  prevTime = currTime;
-  prevBytes = currBytes;
+  p2prouter->prevTime = currTime;
+  p2prouter->prevBytes = currBytes;
 
-  Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughputAndLU, monitor, classifier);
+  Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughputAndLU, monitor, classifier,
+                       p2prouter);
 }
 
 int
 main (int argc, char *argv[])
 {
-  time_t now = time (0);
-  std::stringstream ss;
-  ss << now;
-  std::string ts = ss.str ();
-
   uint32_t stream = 1;
   std::string socketFactory = "ns3::TcpSocketFactory";
   std::string qdiscTypeId = "ns3::FifoQueueDisc";
-  bool isSack = true;
   uint32_t delAckCount = 1;
   std::string recovery = "ns3::TcpClassicRecovery";
   QueueSize queueSize = QueueSize ("2084p");
-  
+
   if (isThresholdAQMEnabled)
     {
       if (tcpType == "TcpNewReno")
@@ -193,7 +203,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);
   cmd.AddValue ("segmentSize", "TCP segment size (bytes)", segmentSize);
   cmd.AddValue ("delAckCount", "Delayed ack count", delAckCount);
-  cmd.AddValue ("enableSack", "Flag to enable/disable sack in TCP", isSack);
   cmd.AddValue ("numNodes", "Number of nodes in the sender", numNodes);
   cmd.AddValue ("roundTripTime", "Round trip time of a network packet", rtt);
   cmd.AddValue ("tcpVariant", "Type of tcp varient you want to use", tcpType);
@@ -205,34 +214,22 @@ main (int argc, char *argv[])
   dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "/";
 
   bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
-  Time bottleneckDelay = MilliSeconds (rtt * 0.01);
   DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
   // 100 - 1 - 1 divided by 4
   Time *accessLinkDelays = variedAccessLinkDelays (numNodes, (rtt * 0.24));
-
-  TypeId qdTid;
-  NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (qdiscTypeId, &qdTid),
-                       "TypeId " << qdiscTypeId << " not found");
 
   // Set recovery algorithm and TCP variant
   Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
                       TypeIdValue (TypeId::LookupByName (recovery)));
 
   // Create nodes
-  NodeContainer leftNodes, rightNodes, routers;
-  routers.Create (2);
+  NodeContainer leftNodes, rightNodes;
+  P2PRouter *p2prouter = new P2PRouter (rtt, dir, queueSize, bottleneckBandwidth, qdiscTypeId);
   leftNodes.Create (numNodes);
   rightNodes.Create (numNodes);
 
   std::vector<NetDeviceContainer> leftToRouter;
   std::vector<NetDeviceContainer> routerToRight;
-
-  // Create the point-to-point link helpers and connect two router nodes
-  PointToPointHelper pointToPointRouter;
-  pointToPointRouter.SetDeviceAttribute ("DataRate", DataRateValue (bottleneckBandwidth));
-  pointToPointRouter.SetChannelAttribute ("Delay", TimeValue (bottleneckDelay));
-  NetDeviceContainer r1r2ND = pointToPointRouter.Install (routers.Get (0), routers.Get (1));
-  pointToPointRouter.DisableFlowControl ();
 
   // Create the point-to-point link helpers and connect leaf nodes to router
   PointToPointHelper pointToPointLeaf;
@@ -242,21 +239,23 @@ main (int argc, char *argv[])
   for (uint32_t i = 0; i < numNodes; ++i)
     {
       pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (accessLinkDelays[i]));
-      leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (i), routers.Get (0)));
-      routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (i)));
+      leftToRouter.push_back (
+          pointToPointLeaf.Install (leftNodes.Get (i), p2prouter->routers.Get (0)));
+      routerToRight.push_back (
+          pointToPointLeaf.Install (p2prouter->routers.Get (1), rightNodes.Get (i)));
     }
 
   InternetStackHelper internetStack;
 
   internetStack.Install (leftNodes);
   internetStack.Install (rightNodes);
-  internetStack.Install (routers);
+  internetStack.Install (p2prouter->routers);
 
   // Assign IP addresses to all the network devices
   // TODO: For N > 3.2k, change bitmask to accomodate larger network
   Ipv4AddressHelper ipAddresses ("10.0.0.0", "255.255.0.0");
 
-  Ipv4InterfaceContainer r1r2IPAddress = ipAddresses.Assign (r1r2ND);
+  Ipv4InterfaceContainer r1r2IPAddress = ipAddresses.Assign (p2prouter->netDevice);
   ipAddresses.NewNetwork ();
 
   std::vector<Ipv4InterfaceContainer> leftToRouterIPAddress;
@@ -312,34 +311,23 @@ main (int argc, char *argv[])
   retVal = system ((dirToSave + "/cwndTraces/").c_str ());
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
 
-  // Set default parameters for queue discipline
-  Config::SetDefault (qdiscTypeId + "::MaxSize", QueueSizeValue (queueSize));
-
-  // Install queue discipline on router
-  TrafficControlHelper tch;
-  tch.SetRootQueueDisc (qdiscTypeId);
-  QueueDiscContainer qd;
-  tch.Uninstall (routers.Get (0)->GetDevice (0));
-  qd.Add (tch.Install (routers.Get (0)->GetDevice (0)).Get (0));
-
-  // Enable BQL
-  tch.SetQueueLimits ("ns3::DynamicQueueLimits");
+  p2prouter->installQueueDiscipline ();
 
   // Calls function to check queue size
-  Simulator::Schedule (tracingStartTime, &CheckQueueSize, qd.Get (0));
-
+  Simulator::Schedule (tracingStartTime, &CheckQueueSize, p2prouter->qd.Get (0));
   AsciiTraceHelper asciiTraceHelper;
   Ptr<OutputStreamWrapper> streamWrapper;
 
   // Create dat to store packets dropped and marked at the router
   streamWrapper = asciiTraceHelper.CreateFileStream (dir + "/queueTraces/drop-0.dat");
-  qd.Get (0)->TraceConnectWithoutContext ("Drop", MakeBoundCallback (&DropAtQueue, streamWrapper));
+  p2prouter->qd.Get (0)->TraceConnectWithoutContext (
+      "Drop", MakeBoundCallback (&DropAtQueue, streamWrapper));
 
   // Install packet sink at receiver side for N nodes
   uint16_t port = 50000;
   for (uint32_t i = 0; i < numNodes; i++)
     {
-      InstallPacketSink (rightNodes.Get (i), port, "ns3::TcpSocketFactory");
+      InstallPacketSink (rightNodes.Get (i), port, socketFactory);
     }
   // Install BulkSend application for N nodes
   for (uint32_t i = 0; i < numNodes; i++)
@@ -355,7 +343,7 @@ main (int argc, char *argv[])
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
-  Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier);
+  Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier, p2prouter);
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
@@ -365,7 +353,7 @@ main (int argc, char *argv[])
   myfile.open (dir + "queueStats.txt", std::fstream::in | std::fstream::out | std::fstream::app);
   myfile << std::endl;
   myfile << "Stat for Queue 1";
-  myfile << qd.Get (0)->GetStats ();
+  myfile << p2prouter->qd.Get (0)->GetStats ();
   myfile.close ();
 
   // Store configuration of the simulation in a file
