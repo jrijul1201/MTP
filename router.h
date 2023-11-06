@@ -51,6 +51,10 @@ public:
     this->prevBytes = 0;
     this->prevTime = Seconds (0);
 
+    uint32_t retVal =-1;
+    retVal = system (("mkdir -p " + dir).c_str ());
+    NS_ASSERT_MSG (retVal == 0, "Error in return value");
+
     NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (qdiscTypeId, &qdTid),
                          "TypeId " << qdiscTypeId << " not found");
     routers.Create (2);
@@ -59,6 +63,7 @@ public:
     pointToPointRouter.SetChannelAttribute ("Delay", TimeValue (linkDelay));
     netDevice = pointToPointRouter.Install (routers.Get (0), routers.Get (1));
     pointToPointRouter.DisableFlowControl ();
+    std::string dirToSave = "mkdir -p " + dir;
   }
 
   void
