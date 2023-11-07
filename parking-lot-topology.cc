@@ -1,22 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-// Network topology
-//
-//       n0 ---------- n1 ---------- n2 ---------- n3
-//            10 Mbps       1 Mbps        10 Mbps
-//             1 ms         10 ms          1 ms
-//
-// - TCP flow from n0 to n3 using BulkSendApplication.
-// - The following simulation output is stored in results/ in ns-3 top-level directory:
-//   - cwnd traces are stored in cwndTraces folder
-//   - queue length statistics are stored in queue-size.dat file
-//   - pcaps are stored in pcap folder
-//   - queueTraces folder contain the drop statistics at queue
-//   - queueStats.txt file contains the queue stats and config.txt file contains
-//     the simulation configuration.
-// - The cwnd and queue length traces obtained from this example were tested against
-//   the respective traces obtained from Linux Reno by using ns-3 Direct Code Execution.
-//   See internet/doc/tcp.rst for more details.
+// Parking Lot Topology: https://arxiv.org/pdf/1907.06302.pdf
 
 #include <iostream>
 #include <stdio.h>
@@ -37,15 +21,16 @@
 
 using namespace ns3;
 std::string dir = "examples/results/";
-Time stopTime = Seconds (10);
-Time tracingDuration = Seconds (10);
+Time stopTime = Seconds (200);
+Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
-uint32_t numNodes = 10;
+uint32_t numNodes = 60;
 DataRate bottleneckBandwidth;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
 bool isThresholdAQMEnabled = true;
+std::ofstream myfile;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -94,8 +79,8 @@ TraceCwnd (uint32_t node, uint32_t cwndWindow,
            Callback<void, std::string, uint32_t, uint32_t> CwndTrace)
 {
   Config::Connect ("/NodeList/" + std::to_string (node) + "/$ns3::TcpL4Protocol/SocketList/" +
-  std::to_string (cwndWindow) + "/CongestionWindow",
-  CwndTrace);
+                       std::to_string (cwndWindow) + "/CongestionWindow",
+                   CwndTrace);
 }
 
 // Function to install BulkSend application
@@ -190,6 +175,25 @@ printNodeIdsFromContainer (NodeContainer nc)
   std::cout << "\n";
 }
 
+void
+saveTraceFiles (PointToPointHelper pointToPointLeaf)
+{
+  AsciiTraceHelper ascii;
+  pointToPointLeaf.EnableAsciiAll (ascii.CreateFileStream (dir + "tcp.tr"));
+}
+
+void
+saveQueueStats (P2PRouter *p2prouter)
+{
+  // Store queue stats in a file
+  myfile.open (p2prouter->dir + "queueStats.txt",
+               std::fstream::in | std::fstream::out | std::fstream::app);
+  myfile << std::endl;
+  myfile << "Stat for Queue";
+  myfile << p2prouter->qd.Get (0)->GetStats ();
+  myfile.close ();
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -229,7 +233,7 @@ main (int argc, char *argv[])
   dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "/";
 
   bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
-  DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
+  DataRate accessLinkBandwidth = DataRate ((3 * bottleneckBandwidth.GetBitRate ()) / numNodes);
   Time *accessLinkDelays;
   Time routerToRouterLinkDelay = Seconds (0.001);
   // Set recovery algorithm and TCP variant
@@ -319,7 +323,7 @@ main (int argc, char *argv[])
   // connecting all routers with p2p link
   pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (routerToRouterLinkDelay));
   pointToPointLeaf.SetDeviceAttribute ("DataRate",
-                                       DataRateValue (2 * bottleneckBandwidth.GetBitRate ()));
+                                       DataRateValue (4 * bottleneckBandwidth.GetBitRate ()));
   for (uint32_t j = 0; j < groups - 2; ++j)
     {
       routerToRouter.push_back (pointToPointLeaf.Install (p2prouters[j]->routers.Get (0),
@@ -433,8 +437,6 @@ main (int argc, char *argv[])
 
   // Enable PCAP on all the point to point interfaces
   // pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);
-  // AsciiTraceHelper ascii;
-  // pointToPointLeaf.EnableAsciiAll (ascii.CreateFileStream (dir + "tcp.tr"));
 
   // Check for dropped packets using Flow Monitor
   FlowMonitorHelper flowmon;
@@ -448,13 +450,10 @@ main (int argc, char *argv[])
   Simulator::Stop (stopTime);
   Simulator::Run ();
 
-  // // Store queue stats in a file
-  std::ofstream myfile;
-  // myfile.open (dir + "queueStats.txt", std::fstream::in | std::fstream::out | std::fstream::app);
-  // myfile << std::endl;
-  // myfile << "Stat for Queue 1";
-  // myfile << p2prouter->qd.Get (0)->GetStats ();
-  // myfile.close ();
+  for (auto p2prouter : p2prouters)
+    {
+      saveQueueStats (p2prouter);
+    }
 
   // Store configuration of the simulation in a file
   myfile.open (dir + "config.txt", std::fstream::in | std::fstream::out | std::fstream::app);
