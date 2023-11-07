@@ -50,8 +50,8 @@ public:
     this->queueSize = queueSize;
     this->prevBytes = 0;
     this->prevTime = Seconds (0);
-
-    uint32_t retVal =-1;
+    
+    uint32_t retVal = -1;
     retVal = system (("mkdir -p " + dir).c_str ());
     NS_ASSERT_MSG (retVal == 0, "Error in return value");
 

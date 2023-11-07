@@ -64,7 +64,7 @@ CheckQueueSize (P2PRouter *p2prouter)
 
   // Check queue size every 1/5 of a second
   Simulator::Schedule (Seconds (0.2), &CheckQueueSize, p2prouter);
-  std::ofstream fPlotQueue (std::stringstream (p2prouter->dir + "queue-size.dat").str ().c_str (),
+  std::ofstream fPlotQueue (std::stringstream (p2prouter->dir + "queueSize.dat").str ().c_str (),
                             std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << qSize << std::endl;
   fPlotQueue.close ();
@@ -74,7 +74,7 @@ CheckQueueSize (P2PRouter *p2prouter)
 static void
 CwndChange (std::string context, uint32_t oldCwnd, uint32_t newCwnd)
 {
-    uint32_t nodeId = GetNodeIdFromContext (context);
+  uint32_t nodeId = GetNodeIdFromContext (context);
   std::string s = std::to_string (nodeId);
   std::ofstream fPlotQueue (dir + "cwndTraces/n" + s + ".dat", std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << newCwnd / segmentSize << std::endl;
@@ -94,8 +94,8 @@ TraceCwnd (uint32_t node, uint32_t cwndWindow,
            Callback<void, std::string, uint32_t, uint32_t> CwndTrace)
 {
   Config::Connect ("/NodeList/" + std::to_string (node) + "/$ns3::TcpL4Protocol/SocketList/" +
-                      std::to_string (cwndWindow) + "/CongestionWindow",
-                  CwndTrace);
+  std::to_string (cwndWindow) + "/CongestionWindow",
+  CwndTrace);
 }
 
 // Function to install BulkSend application
@@ -304,13 +304,6 @@ main (int argc, char *argv[])
         }
     }
 
-  // connecting all routers with p2p link
-  pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (routerToRouterLinkDelay));
-  for (uint32_t j = 0; j < groups - 2; ++j)
-    {
-      routerToRouter.push_back (pointToPointLeaf.Install (p2prouters[j]->routers.Get (0),
-                                                          p2prouters[j + 1]->routers.Get (1)));
-    }
   // configuring group a
   accessLinkDelays =
       variedAccessLinkDelays (numNodesInGroup, (rtt * (0.25 - (0.005 * (2 * groups - 3)))));
@@ -321,6 +314,16 @@ main (int argc, char *argv[])
           pointToPointLeaf.Install (sources[0].Get (i), p2prouters[0]->routers.Get (0)));
       routerToDestination[0].push_back (pointToPointLeaf.Install (
           p2prouters[groups - 2]->routers.Get (1), destinations[0].Get (i)));
+    }
+
+  // connecting all routers with p2p link
+  pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (routerToRouterLinkDelay));
+  pointToPointLeaf.SetDeviceAttribute ("DataRate",
+                                       DataRateValue (2 * bottleneckBandwidth.GetBitRate ()));
+  for (uint32_t j = 0; j < groups - 2; ++j)
+    {
+      routerToRouter.push_back (pointToPointLeaf.Install (p2prouters[j]->routers.Get (0),
+                                                          p2prouters[j + 1]->routers.Get (1)));
     }
 
   InternetStackHelper internetStack;
@@ -430,6 +433,8 @@ main (int argc, char *argv[])
 
   // Enable PCAP on all the point to point interfaces
   // pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);
+  // AsciiTraceHelper ascii;
+  // pointToPointLeaf.EnableAsciiAll (ascii.CreateFileStream (dir + "tcp.tr"));
 
   // Check for dropped packets using Flow Monitor
   FlowMonitorHelper flowmon;
