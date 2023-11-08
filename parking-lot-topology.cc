@@ -178,11 +178,13 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifi
                        p2prouter);
 }
 
+// Function to calculate and record the throughput for a specific destination IP
 static void
 TraceThroughputHelper (Ipv4Address destIP, uint32_t currBytes)
 {
   Time currTime = Now ();
 
+  // Calculate throughput using the formula: (change in bytes) / (time difference)
   double throughput =
       8 * (currBytes - IPtoDestinationData[destIP]->prevBytes) /
       (1000 * 1000 *
@@ -193,16 +195,22 @@ TraceThroughputHelper (Ipv4Address destIP, uint32_t currBytes)
 
   IPtoDestinationData[destIP]->prevTime = currTime;
   IPtoDestinationData[destIP]->prevBytes = currBytes;
+
+  // Accumulate the calculated throughput to the corresponding group's accumulated throughput
   throughputPerGroup[IPtoDestinationData[destIP]->groupID] += throughput;
 }
 
+// Function to calculate and record the average throughput per group
 static void
 TraceAvgThroughputPerGroup ()
 {
+  // Get the current time
   Time currTime = Now ();
 
+  // Loop through each group to calculate the average throughput
   for (uint32_t i = 0; i < groups; i++)
     {
+      // Calculate the average throughput per group by dividing accumulated throughput by the number of nodes in the group
       throughputPerGroup[i] /= numNodesInGroup;
       std::ofstream thr (dir + "/throughput/avgThroughput_" + std::to_string (i),
                          std::ios::out | std::ios::app);
@@ -210,23 +218,32 @@ TraceAvgThroughputPerGroup ()
     }
 }
 
-// Calculate flow-wise throughput
+// Function to calculate flow-wise throughput
 static void
 TraceThroughput (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
 {
+  // Retrieve flow statistics
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
+
+  // Initialize the throughput per group to zero
   throughputPerGroup.assign (groups, 0.0);
 
+  // Count the number of flows to process
   auto count = stats.size () / 2;
-  // aggregate rxBytes for first half flows (going towards sink):
+
+  // Aggregate received bytes for the first half of flows going towards the sink
   for (auto itr = stats.begin (); count > 0; ++itr, --count)
     {
+      // Find the flow and its destination address
       Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
+      // Calculate and record the throughput for the specific destination address
       TraceThroughputHelper (t.destinationAddress, itr->second.rxBytes);
     }
 
+  // Calculate and record the average throughput per group
   TraceAvgThroughputPerGroup ();
 
+  // Schedule the next throughput calculation after a certain time (rtt)
   Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughput, monitor, classifier);
 }
 
