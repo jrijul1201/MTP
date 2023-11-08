@@ -233,7 +233,7 @@ main (int argc, char *argv[])
   dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "/";
 
   bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
-  DataRate accessLinkBandwidth = DataRate ((3 * bottleneckBandwidth.GetBitRate ()) / numNodes);
+  DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
   Time *accessLinkDelays;
   Time routerToRouterLinkDelay = Seconds (0.001);
   // Set recovery algorithm and TCP variant
