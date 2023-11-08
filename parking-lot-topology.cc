@@ -17,6 +17,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/traffic-control-module.h"
 #include "ns3/flow-monitor-module.h"
+#include "router.h"
 
 using namespace ns3;
 std::string dir = "examples/results/";
@@ -25,13 +26,11 @@ Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
 uint32_t numNodes = 60;
-uint32_t prevBytes = 0;
-uint32_t currBytes = 0;
-Time prevTime = Seconds (0);
 DataRate bottleneckBandwidth;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
 bool isThresholdAQMEnabled = true;
+std::ofstream myfile;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -43,13 +42,14 @@ GetNodeIdFromContext (std::string context)
 
 // Function to check queue length of Router 1
 void
-CheckQueueSize (Ptr<QueueDisc> queue)
+CheckQueueSize (P2PRouter *p2prouter)
 {
+  Ptr<QueueDisc> queue = p2prouter->qd.Get (0);
   uint32_t qSize = queue->GetCurrentSize ().GetValue ();
 
   // Check queue size every 1/5 of a second
-  Simulator::Schedule (Seconds (0.2), &CheckQueueSize, queue);
-  std::ofstream fPlotQueue (std::stringstream (dir + "queue-size.dat").str ().c_str (),
+  Simulator::Schedule (Seconds (0.2), &CheckQueueSize, p2prouter);
+  std::ofstream fPlotQueue (std::stringstream (p2prouter->dir + "queueSize.dat").str ().c_str (),
                             std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << qSize << std::endl;
   fPlotQueue.close ();
@@ -129,12 +129,13 @@ variedAccessLinkDelays (int numNodes, int mean)
 
 // Calculate throughput and link utilisation
 static void
-TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
+TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier,
+                      P2PRouter *p2prouter)
 {
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
   Time currTime = Now ();
+  uint32_t currBytes = 0;
 
-  currBytes = 0;
   auto count = stats.size () / 2;
   // aggregate rxBytes for first half flows (going towards sink):
   for (auto itr = stats.begin (); count > 0; ++itr, --count)
@@ -146,37 +147,65 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifi
     }
 
   // Throughput is in MegaBits/Second
-  double throughput = 8 * (currBytes - prevBytes) /
-                      (1000 * 1000 * (currTime.GetSeconds () - prevTime.GetSeconds ()));
-  double link_util = (throughput * 1000 * 1000 * 100 / bottleneckBandwidth.GetBitRate ());
+  double throughput = 8 * (currBytes - p2prouter->prevBytes) /
+                      (1000 * 1000 * (currTime.GetSeconds () - p2prouter->prevTime.GetSeconds ()));
+  double link_util = (throughput * 1000 * 1000 * 100 / p2prouter->linkBandwidth.GetBitRate ());
 
-  std::ofstream thr (dir + "/throughput.dat", std::ios::out | std::ios::app);
-  std::ofstream lu (dir + "/linkUtilization.dat", std::ios::out | std::ios::app);
+  std::ofstream thr (p2prouter->dir + "/throughput.dat", std::ios::out | std::ios::app);
+  std::ofstream lu (p2prouter->dir + "/linkUtilization.dat", std::ios::out | std::ios::app);
   thr << currTime.GetSeconds () << " " << throughput << std::endl;
   lu << currTime.GetSeconds () << " " << link_util << std::endl;
 
-  prevTime = currTime;
-  prevBytes = currBytes;
+  p2prouter->prevTime = currTime;
+  p2prouter->prevBytes = currBytes;
 
-  Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughputAndLU, monitor, classifier);
+  Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughputAndLU, monitor, classifier,
+                       p2prouter);
+}
+
+void
+printNodeIdsFromContainer (NodeContainer nc)
+{
+  uint32_t nNodes = nc.GetN ();
+  for (uint32_t j = 0; j < nNodes; ++j)
+    {
+      Ptr<Node> p = nc.Get (j);
+      std::cout << p->GetId () << " ";
+    }
+  std::cout << "\n";
+}
+
+void
+saveTraceFiles (PointToPointHelper pointToPointLeaf)
+{
+  AsciiTraceHelper ascii;
+  pointToPointLeaf.EnableAsciiAll (ascii.CreateFileStream (dir + "tcp.tr"));
+}
+
+void
+saveQueueStats (P2PRouter *p2prouter)
+{
+  // Store queue stats in a file
+  myfile.open (p2prouter->dir + "queueStats.txt",
+               std::fstream::in | std::fstream::out | std::fstream::app);
+  myfile << std::endl;
+  myfile << "Stat for Queue";
+  myfile << p2prouter->qd.Get (0)->GetStats ();
+  myfile.close ();
 }
 
 int
 main (int argc, char *argv[])
 {
-  time_t now = time (0);
-  std::stringstream ss;
-  ss << now;
-  std::string ts = ss.str ();
-
   uint32_t stream = 1;
   std::string socketFactory = "ns3::TcpSocketFactory";
   std::string qdiscTypeId = "ns3::FifoQueueDisc";
-  bool isSack = true;
   uint32_t delAckCount = 1;
   std::string recovery = "ns3::TcpClassicRecovery";
   QueueSize queueSize = QueueSize ("2084p");
-  
+  uint32_t groups = 3; // Number of sources and destinations groups
+  uint32_t numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
+
   if (isThresholdAQMEnabled)
     {
       if (tcpType == "TcpNewReno")
@@ -193,7 +222,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);
   cmd.AddValue ("segmentSize", "TCP segment size (bytes)", segmentSize);
   cmd.AddValue ("delAckCount", "Delayed ack count", delAckCount);
-  cmd.AddValue ("enableSack", "Flag to enable/disable sack in TCP", isSack);
   cmd.AddValue ("numNodes", "Number of nodes in the sender", numNodes);
   cmd.AddValue ("roundTripTime", "Round trip time of a network packet", rtt);
   cmd.AddValue ("tcpVariant", "Type of tcp varient you want to use", tcpType);
@@ -205,72 +233,150 @@ main (int argc, char *argv[])
   dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "/";
 
   bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
-  Time bottleneckDelay = MilliSeconds (rtt * 0.01);
   DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
-  // 100 - 1 - 1 divided by 4
-  Time *accessLinkDelays = variedAccessLinkDelays (numNodes, (rtt * 0.24));
-
-  TypeId qdTid;
-  NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (qdiscTypeId, &qdTid),
-                       "TypeId " << qdiscTypeId << " not found");
-
+  Time *accessLinkDelays;
+  Time routerToRouterLinkDelay = Seconds (0.001);
   // Set recovery algorithm and TCP variant
   Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
                       TypeIdValue (TypeId::LookupByName (recovery)));
 
+  // Create directories to store dat files
+  struct stat buffer;
+  [[maybe_unused]] int retVal;
+  if ((stat (dir.c_str (), &buffer)) == 0)
+    {
+      std::string dirToRemove = "rm -rf " + dir;
+      retVal = system (dirToRemove.c_str ());
+      NS_ASSERT_MSG (retVal == 0, "Error in return value");
+    }
+  std::string dirToSave = "mkdir -p " + dir;
+  retVal = system (dirToSave.c_str ());
+  NS_ASSERT_MSG (retVal == 0, "Error in return value");
+  // retVal = system ((dirToSave + "/pcap/").c_str ());
+  // NS_ASSERT_MSG (retVal == 0, "Error in return value");
+  // retVal = system ((dirToSave + "/queueTraces/").c_str ());
+  // NS_ASSERT_MSG (retVal == 0, "Error in return value");
+  retVal = system ((dirToSave + "/cwndTraces/").c_str ());
+  NS_ASSERT_MSG (retVal == 0, "Error in return value");
+
   // Create nodes
-  NodeContainer leftNodes, rightNodes, routers;
-  routers.Create (2);
-  leftNodes.Create (numNodes);
-  rightNodes.Create (numNodes);
+  std::vector<P2PRouter *> p2prouters;
 
-  std::vector<NetDeviceContainer> leftToRouter;
-  std::vector<NetDeviceContainer> routerToRight;
+  for (uint32_t i = 0; i < groups - 1; i++)
+    {
+      p2prouters.push_back (new P2PRouter (rtt, dir + "router" + std::to_string (i) + '/',
+                                           queueSize, bottleneckBandwidth, qdiscTypeId));
+    }
 
-  // Create the point-to-point link helpers and connect two router nodes
-  PointToPointHelper pointToPointRouter;
-  pointToPointRouter.SetDeviceAttribute ("DataRate", DataRateValue (bottleneckBandwidth));
-  pointToPointRouter.SetChannelAttribute ("Delay", TimeValue (bottleneckDelay));
-  NetDeviceContainer r1r2ND = pointToPointRouter.Install (routers.Get (0), routers.Get (1));
-  pointToPointRouter.DisableFlowControl ();
+  // a b c sources and a b c destinations
+  std::vector<NodeContainer> sources (groups, NodeContainer ()),
+      destinations (groups, NodeContainer ());
+
+  for (uint32_t i = 0; i < groups; i++)
+    {
+      sources[i].Create (numNodesInGroup);
+    }
+
+  for (uint32_t i = 0; i < groups; i++)
+    {
+      destinations[i].Create (numNodesInGroup);
+    }
+
+  std::vector<std::vector<NetDeviceContainer>> sourceToRouter (groups,
+                                                               std::vector<NetDeviceContainer> ()),
+      routerToDestination (groups, std::vector<NetDeviceContainer> ());
+  std::vector<NetDeviceContainer> routerToRouter;
 
   // Create the point-to-point link helpers and connect leaf nodes to router
   PointToPointHelper pointToPointLeaf;
   pointToPointLeaf.DisableFlowControl ();
   pointToPointLeaf.SetDeviceAttribute ("DataRate", DataRateValue (accessLinkBandwidth));
   pointToPointLeaf.DisableFlowControl ();
-  for (uint32_t i = 0; i < numNodes; ++i)
+
+  // configuring group b & c b/w routers, a will be done later.
+  for (uint32_t j = 1; j < groups; ++j)
+    {
+      // 100 - 1 - 1 divided by 4
+      accessLinkDelays = variedAccessLinkDelays (numNodesInGroup, (rtt * 0.24));
+      for (uint32_t i = 0; i < numNodesInGroup; ++i)
+        {
+          pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (accessLinkDelays[i]));
+          sourceToRouter[j].push_back (
+              pointToPointLeaf.Install (sources[j].Get (i), p2prouters[j - 1]->routers.Get (0)));
+          routerToDestination[j].push_back (pointToPointLeaf.Install (
+              p2prouters[j - 1]->routers.Get (1), destinations[j].Get (i)));
+        }
+    }
+
+  // configuring group a
+  accessLinkDelays =
+      variedAccessLinkDelays (numNodesInGroup, (rtt * (0.25 - (0.005 * (2 * groups - 3)))));
+  for (uint32_t i = 0; i < numNodesInGroup; ++i)
     {
       pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (accessLinkDelays[i]));
-      leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (i), routers.Get (0)));
-      routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (i)));
+      sourceToRouter[0].push_back (
+          pointToPointLeaf.Install (sources[0].Get (i), p2prouters[0]->routers.Get (0)));
+      routerToDestination[0].push_back (pointToPointLeaf.Install (
+          p2prouters[groups - 2]->routers.Get (1), destinations[0].Get (i)));
+    }
+
+  // connecting all routers with p2p link
+  pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (routerToRouterLinkDelay));
+  pointToPointLeaf.SetDeviceAttribute ("DataRate",
+                                       DataRateValue (4 * bottleneckBandwidth.GetBitRate ()));
+  for (uint32_t j = 0; j < groups - 2; ++j)
+    {
+      routerToRouter.push_back (pointToPointLeaf.Install (p2prouters[j]->routers.Get (0),
+                                                          p2prouters[j + 1]->routers.Get (1)));
     }
 
   InternetStackHelper internetStack;
-
-  internetStack.Install (leftNodes);
-  internetStack.Install (rightNodes);
-  internetStack.Install (routers);
+  for (auto nodes : sources)
+    {
+      internetStack.Install (nodes);
+    }
+  for (auto nodes : destinations)
+    {
+      internetStack.Install (nodes);
+    }
+  for (auto p2prouter : p2prouters)
+    {
+      internetStack.Install (p2prouter->routers);
+    }
 
   // Assign IP addresses to all the network devices
   // TODO: For N > 3.2k, change bitmask to accomodate larger network
   Ipv4AddressHelper ipAddresses ("10.0.0.0", "255.255.0.0");
 
-  Ipv4InterfaceContainer r1r2IPAddress = ipAddresses.Assign (r1r2ND);
-  ipAddresses.NewNetwork ();
-
-  std::vector<Ipv4InterfaceContainer> leftToRouterIPAddress;
-  for (uint32_t i = 0; i < numNodes; i++)
+  for (auto p2prouter : p2prouters)
     {
-      leftToRouterIPAddress.push_back (ipAddresses.Assign (leftToRouter[i]));
+      ipAddresses.Assign (p2prouter->netDevice);
       ipAddresses.NewNetwork ();
     }
-
-  std::vector<Ipv4InterfaceContainer> routerToRightIPAddress;
-  for (uint32_t i = 0; i < numNodes; i++)
+  for (auto r2rLink : routerToRouter)
     {
-      routerToRightIPAddress.push_back (ipAddresses.Assign (routerToRight[i]));
+      ipAddresses.Assign (r2rLink);
       ipAddresses.NewNetwork ();
+    }
+  for (auto s2rLinks : sourceToRouter)
+    {
+      for (auto s2rLink : s2rLinks)
+        {
+          ipAddresses.Assign (s2rLink);
+          ipAddresses.NewNetwork ();
+        }
+    }
+
+  std::vector<std::vector<Ipv4Address>> destinationIPAddresses (groups,
+                                                                std::vector<Ipv4Address> ());
+
+  for (uint32_t j = 0; j < groups; ++j)
+    {
+      for (auto r2dLink : routerToDestination[j])
+        {
+          destinationIPAddresses[j].push_back (ipAddresses.Assign (r2dLink).GetAddress (1));
+          ipAddresses.NewNetwork ();
+        }
     }
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
@@ -293,61 +399,42 @@ main (int argc, char *argv[])
   // Enable/Disable SACK in TCP
   // Config::SetDefault ("ns3::TcpSocketBase::Sack", BooleanValue (isSack));
 
-  // Create directories to store dat files
-  struct stat buffer;
-  [[maybe_unused]] int retVal;
-  if ((stat (dir.c_str (), &buffer)) == 0)
-    {
-      std::string dirToRemove = "rm -rf " + dir;
-      retVal = system (dirToRemove.c_str ());
-      NS_ASSERT_MSG (retVal == 0, "Error in return value");
-    }
-  std::string dirToSave = "mkdir -p " + dir;
-  retVal = system (dirToSave.c_str ());
-  NS_ASSERT_MSG (retVal == 0, "Error in return value");
-  // retVal = system ((dirToSave + "/pcap/").c_str ());
-  // NS_ASSERT_MSG (retVal == 0, "Error in return value");
-  retVal = system ((dirToSave + "/queueTraces/").c_str ());
-  NS_ASSERT_MSG (retVal == 0, "Error in return value");
-  retVal = system ((dirToSave + "/cwndTraces/").c_str ());
-  NS_ASSERT_MSG (retVal == 0, "Error in return value");
-
-  // Set default parameters for queue discipline
-  Config::SetDefault (qdiscTypeId + "::MaxSize", QueueSizeValue (queueSize));
-
-  // Install queue discipline on router
-  TrafficControlHelper tch;
-  tch.SetRootQueueDisc (qdiscTypeId);
-  QueueDiscContainer qd;
-  tch.Uninstall (routers.Get (0)->GetDevice (0));
-  qd.Add (tch.Install (routers.Get (0)->GetDevice (0)).Get (0));
-
-  // Enable BQL
-  tch.SetQueueLimits ("ns3::DynamicQueueLimits");
-
-  // Calls function to check queue size
-  Simulator::Schedule (tracingStartTime, &CheckQueueSize, qd.Get (0));
-
   AsciiTraceHelper asciiTraceHelper;
   Ptr<OutputStreamWrapper> streamWrapper;
 
-  // Create dat to store packets dropped and marked at the router
-  streamWrapper = asciiTraceHelper.CreateFileStream (dir + "/queueTraces/drop-0.dat");
-  qd.Get (0)->TraceConnectWithoutContext ("Drop", MakeBoundCallback (&DropAtQueue, streamWrapper));
+  for (auto p2prouter : p2prouters)
+    {
+      p2prouter->installQueueDiscipline ();
+
+      // Calls function to check queue size
+      Simulator::Schedule (tracingStartTime, &CheckQueueSize, p2prouter);
+
+      // Create dat to store packets dropped and marked at the router
+      streamWrapper = asciiTraceHelper.CreateFileStream (p2prouter->dir + "drop.dat");
+      p2prouter->qd.Get (0)->TraceConnectWithoutContext (
+          "Drop", MakeBoundCallback (&DropAtQueue, streamWrapper));
+    }
 
   // Install packet sink at receiver side for N nodes
   uint16_t port = 50000;
-  for (uint32_t i = 0; i < numNodes; i++)
+  for (uint32_t j = 0; j < groups; j++)
     {
-      InstallPacketSink (rightNodes.Get (i), port, "ns3::TcpSocketFactory");
+      for (uint32_t i = 0; i < numNodesInGroup; i++)
+        {
+          InstallPacketSink (destinations[j].Get (i), port, socketFactory);
+        }
     }
   // Install BulkSend application for N nodes
-  for (uint32_t i = 0; i < numNodes; i++)
+  for (uint32_t j = 0; j < groups; j++)
     {
-      // NodeId 0 and 1 are assigned to routers, hence (2 + i) will be the nodeId
-      InstallBulkSend (leftNodes.Get (i), routerToRightIPAddress[i].GetAddress (1), port,
-                       socketFactory, 2 + i, 0, MakeCallback (&CwndChange));
+      for (uint32_t i = 0; i < numNodesInGroup; i++)
+        {
+          // NodeId 0 and 1 are assigned to routers, hence (2 + i) will be the nodeId
+          InstallBulkSend (sources[j].Get (i), destinationIPAddresses[j][i], port, socketFactory,
+                           sources[j].Get (i)->GetId (), 0, MakeCallback (&CwndChange));
+        }
     }
+
   // Enable PCAP on all the point to point interfaces
   // pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);
 
@@ -355,18 +442,18 @@ main (int argc, char *argv[])
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
-  Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier);
+  for (auto p2prouter : p2prouters)
+    {
+      Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier, p2prouter);
+    }
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
 
-  // Store queue stats in a file
-  std::ofstream myfile;
-  myfile.open (dir + "queueStats.txt", std::fstream::in | std::fstream::out | std::fstream::app);
-  myfile << std::endl;
-  myfile << "Stat for Queue 1";
-  myfile << qd.Get (0)->GetStats ();
-  myfile.close ();
+  for (auto p2prouter : p2prouters)
+    {
+      saveQueueStats (p2prouter);
+    }
 
   // Store configuration of the simulation in a file
   myfile.open (dir + "config.txt", std::fstream::in | std::fstream::out | std::fstream::app);
