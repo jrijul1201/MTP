@@ -39,18 +39,18 @@ public:
 
   // Constructor
   P2PRouter (uint32_t rtt, std::string dir, QueueSize queueSize = QueueSize ("2084p"),
-             DataRate linkBandwidth = DataRate ("100Mbps"),
+             DataRate linkBandwidth = DataRate ("100Mbps"), Time linkDelay = MicroSeconds (1),
              std::string qdiscTypeId = "ns3::FifoQueueDisc")
   {
     this->linkBandwidth = linkBandwidth;
-    this->linkDelay = MilliSeconds (rtt * 0.01);
+    this->linkDelay = linkDelay;
     this->dir = dir;
     this->rtt = rtt;
     this->qdiscTypeId = qdiscTypeId;
     this->queueSize = queueSize;
     this->prevBytes = 0;
     this->prevTime = Seconds (0);
-    
+
     uint32_t retVal = -1;
     retVal = system (("mkdir -p " + dir).c_str ());
     NS_ASSERT_MSG (retVal == 0, "Error in return value");

@@ -26,10 +26,21 @@ Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
 uint32_t numNodes = 60;
-DataRate bottleneckBandwidth;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
 bool isThresholdAQMEnabled = true;
+uint32_t stream = 1;
+std::string socketFactory = "ns3::TcpSocketFactory";
+std::string qdiscTypeId = "ns3::FifoQueueDisc";
+uint32_t delAckCount = 1;
+std::string recovery = "ns3::TcpClassicRecovery";
+QueueSize queueSize = QueueSize ("2084p");
+uint32_t groups = 3; // Number of sources and destinations groups
+uint32_t numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
+DataRate bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
+DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
+Time minimumLinkDelay = MicroSeconds (1);
+Time *accessLinkDelays;
 std::ofstream myfile;
 
 static uint32_t
@@ -48,7 +59,7 @@ CheckQueueSize (P2PRouter *p2prouter)
   uint32_t qSize = queue->GetCurrentSize ().GetValue ();
 
   // Check queue size every 1/5 of a second
-  Simulator::Schedule (Seconds (0.2), &CheckQueueSize, p2prouter);
+  Simulator::Schedule (Seconds (0.001), &CheckQueueSize, p2prouter);
   std::ofstream fPlotQueue (std::stringstream (p2prouter->dir + "queueSize.dat").str ().c_str (),
                             std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << qSize << std::endl;
@@ -127,7 +138,7 @@ variedAccessLinkDelays (int numNodes, int mean)
   return delays;
 }
 
-// Calculate throughput and link utilisation
+// Calculate throughput and link utilisation for all flows
 static void
 TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier,
                       P2PRouter *p2prouter)
@@ -197,15 +208,6 @@ saveQueueStats (P2PRouter *p2prouter)
 int
 main (int argc, char *argv[])
 {
-  uint32_t stream = 1;
-  std::string socketFactory = "ns3::TcpSocketFactory";
-  std::string qdiscTypeId = "ns3::FifoQueueDisc";
-  uint32_t delAckCount = 1;
-  std::string recovery = "ns3::TcpClassicRecovery";
-  QueueSize queueSize = QueueSize ("2084p");
-  uint32_t groups = 3; // Number of sources and destinations groups
-  uint32_t numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
-
   if (isThresholdAQMEnabled)
     {
       if (tcpType == "TcpNewReno")
@@ -232,10 +234,6 @@ main (int argc, char *argv[])
 
   dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "/";
 
-  bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
-  DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
-  Time *accessLinkDelays;
-  Time routerToRouterLinkDelay = Seconds (0.001);
   // Set recovery algorithm and TCP variant
   Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
                       TypeIdValue (TypeId::LookupByName (recovery)));
@@ -265,7 +263,8 @@ main (int argc, char *argv[])
   for (uint32_t i = 0; i < groups - 1; i++)
     {
       p2prouters.push_back (new P2PRouter (rtt, dir + "router" + std::to_string (i) + '/',
-                                           queueSize, bottleneckBandwidth, qdiscTypeId));
+                                           queueSize, bottleneckBandwidth, minimumLinkDelay,
+                                           qdiscTypeId));
     }
 
   // a b c sources and a b c destinations
@@ -297,7 +296,7 @@ main (int argc, char *argv[])
   for (uint32_t j = 1; j < groups; ++j)
     {
       // 100 - 1 - 1 divided by 4
-      accessLinkDelays = variedAccessLinkDelays (numNodesInGroup, (rtt * 0.24));
+      accessLinkDelays = variedAccessLinkDelays (numNodesInGroup, (rtt / 4));
       for (uint32_t i = 0; i < numNodesInGroup; ++i)
         {
           pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (accessLinkDelays[i]));
@@ -309,8 +308,7 @@ main (int argc, char *argv[])
     }
 
   // configuring group a
-  accessLinkDelays =
-      variedAccessLinkDelays (numNodesInGroup, (rtt * (0.25 - (0.005 * (2 * groups - 3)))));
+  accessLinkDelays = variedAccessLinkDelays (numNodesInGroup, (rtt / 4));
   for (uint32_t i = 0; i < numNodesInGroup; ++i)
     {
       pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (accessLinkDelays[i]));
@@ -321,9 +319,9 @@ main (int argc, char *argv[])
     }
 
   // connecting all routers with p2p link
-  pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (routerToRouterLinkDelay));
+  pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (minimumLinkDelay));
   pointToPointLeaf.SetDeviceAttribute ("DataRate",
-                                       DataRateValue (4 * bottleneckBandwidth.GetBitRate ()));
+                                       DataRateValue (bottleneckBandwidth.GetBitRate ()));
   for (uint32_t j = 0; j < groups - 2; ++j)
     {
       routerToRouter.push_back (pointToPointLeaf.Install (p2prouters[j]->routers.Get (0),
