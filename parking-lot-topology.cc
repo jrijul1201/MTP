@@ -23,11 +23,11 @@
 using namespace ns3;
 
 std::string dir = "examples/results/";
-Time stopTime = Seconds (200);
-Time tracingDuration = Seconds (25);
+Time stopTime = Seconds (20);
+Time tracingDuration = Seconds (10);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
-uint32_t numNodes = 60;
+uint32_t numNodes = 10;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
 bool isThresholdAQMEnabled = true;
@@ -44,6 +44,8 @@ Time minimumLinkDelay = MicroSeconds (1);
 Time *accessLinkDelays;
 std::ofstream myfile;
 std::map<Ipv4Address, DestinationData *> IPtoDestinationData;
+std::vector<double> throughputPerGroup;
+uint32_t numNodesInGroup;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -191,6 +193,21 @@ TraceThroughputHelper (Ipv4Address destIP, uint32_t currBytes)
 
   IPtoDestinationData[destIP]->prevTime = currTime;
   IPtoDestinationData[destIP]->prevBytes = currBytes;
+  throughputPerGroup[IPtoDestinationData[destIP]->groupID] += throughput;
+}
+
+static void
+TraceAvgThroughputPerGroup ()
+{
+  Time currTime = Now ();
+
+  for (uint32_t i = 0; i < groups; i++)
+    {
+      throughputPerGroup[i] /= numNodesInGroup;
+      std::ofstream thr (dir + "/throughput/avgThroughput_" + std::to_string (i),
+                         std::ios::out | std::ios::app);
+      thr << currTime.GetSeconds () << " " << throughputPerGroup[i] << std::endl;
+    }
 }
 
 // Calculate flow-wise throughput
@@ -198,6 +215,7 @@ static void
 TraceThroughput (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
 {
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
+  throughputPerGroup.assign (groups, 0.0);
 
   auto count = stats.size () / 2;
   // aggregate rxBytes for first half flows (going towards sink):
@@ -206,6 +224,8 @@ TraceThroughput (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
       Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
       TraceThroughputHelper (t.destinationAddress, itr->second.rxBytes);
     }
+
+  TraceAvgThroughputPerGroup ();
 
   Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughput, monitor, classifier);
 }
@@ -269,8 +289,7 @@ main (int argc, char *argv[])
   cmd.Parse (argc, argv);
 
   dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "/";
-  uint32_t numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
-
+  numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
   // Set recovery algorithm and TCP variant
   Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
                       TypeIdValue (TypeId::LookupByName (recovery)));

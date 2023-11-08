@@ -26,7 +26,7 @@ public:
     this->prevTime = Seconds (0);
     this->groupID = groupID;
     this->destinationID = destinationID;
-    this->throughput_file = dir + "/throughput/throughput" + std::to_string (groupID) + "_" +
+    this->throughput_file = dir + "/throughput/throughput_" + std::to_string (groupID) + "_" +
                             std::to_string (destinationID) + ".dat";
   }
 };
