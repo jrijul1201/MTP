@@ -18,8 +18,10 @@
 #include "ns3/traffic-control-module.h"
 #include "ns3/flow-monitor-module.h"
 #include "router.h"
+#include "destination-data.h"
 
 using namespace ns3;
+
 std::string dir = "examples/results/";
 Time stopTime = Seconds (200);
 Time tracingDuration = Seconds (25);
@@ -36,12 +38,12 @@ uint32_t delAckCount = 1;
 std::string recovery = "ns3::TcpClassicRecovery";
 QueueSize queueSize = QueueSize ("2084p");
 uint32_t groups = 3; // Number of sources and destinations groups
-uint32_t numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
 DataRate bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
 DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
 Time minimumLinkDelay = MicroSeconds (1);
 Time *accessLinkDelays;
 std::ofstream myfile;
+std::map<Ipv4Address, DestinationData *> IPtoDestinationData;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -174,6 +176,40 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifi
                        p2prouter);
 }
 
+static void
+TraceThroughputHelper (Ipv4Address destIP, uint32_t currBytes)
+{
+  Time currTime = Now ();
+
+  double throughput =
+      8 * (currBytes - IPtoDestinationData[destIP]->prevBytes) /
+      (1000 * 1000 *
+       (currTime.GetSeconds () - IPtoDestinationData[destIP]->prevTime.GetSeconds ()));
+
+  std::ofstream thr (IPtoDestinationData[destIP]->throughput_file, std::ios::out | std::ios::app);
+  thr << currTime.GetSeconds () << " " << throughput << std::endl;
+
+  IPtoDestinationData[destIP]->prevTime = currTime;
+  IPtoDestinationData[destIP]->prevBytes = currBytes;
+}
+
+// Calculate flow-wise throughput
+static void
+TraceThroughput (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
+{
+  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
+
+  auto count = stats.size () / 2;
+  // aggregate rxBytes for first half flows (going towards sink):
+  for (auto itr = stats.begin (); count > 0; ++itr, --count)
+    {
+      Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
+      TraceThroughputHelper (t.destinationAddress, itr->second.rxBytes);
+    }
+
+  Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughput, monitor, classifier);
+}
+
 void
 printNodeIdsFromContainer (NodeContainer nc)
 {
@@ -233,6 +269,7 @@ main (int argc, char *argv[])
   cmd.Parse (argc, argv);
 
   dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "/";
+  uint32_t numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
 
   // Set recovery algorithm and TCP variant
   Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
@@ -250,11 +287,9 @@ main (int argc, char *argv[])
   std::string dirToSave = "mkdir -p " + dir;
   retVal = system (dirToSave.c_str ());
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
-  // retVal = system ((dirToSave + "/pcap/").c_str ());
-  // NS_ASSERT_MSG (retVal == 0, "Error in return value");
-  // retVal = system ((dirToSave + "/queueTraces/").c_str ());
-  // NS_ASSERT_MSG (retVal == 0, "Error in return value");
   retVal = system ((dirToSave + "/cwndTraces/").c_str ());
+  NS_ASSERT_MSG (retVal == 0, "Error in return value");
+  retVal = system ((dirToSave + "/throughput/").c_str ());
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
 
   // Create nodes
@@ -367,13 +402,16 @@ main (int argc, char *argv[])
 
   std::vector<std::vector<Ipv4Address>> destinationIPAddresses (groups,
                                                                 std::vector<Ipv4Address> ());
+  Ipv4Address tmpIP;
 
   for (uint32_t j = 0; j < groups; ++j)
     {
-      for (auto r2dLink : routerToDestination[j])
+      for (uint32_t i = 0; i < numNodesInGroup; i++)
         {
-          destinationIPAddresses[j].push_back (ipAddresses.Assign (r2dLink).GetAddress (1));
+          tmpIP = ipAddresses.Assign (routerToDestination[j][i]).GetAddress (1);
+          destinationIPAddresses[j].push_back (tmpIP);
           ipAddresses.NewNetwork ();
+          IPtoDestinationData[tmpIP] = new DestinationData (j, i, dir);
         }
     }
 
@@ -440,10 +478,11 @@ main (int argc, char *argv[])
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
-  for (auto p2prouter : p2prouters)
-    {
-      Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier, p2prouter);
-    }
+  // for (auto p2prouter : p2prouters)
+  //   {
+  //     Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier, p2prouter);
+  //   }
+  Simulator::Schedule (tracingStartTime, &TraceThroughput, monitor, classifier);
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
