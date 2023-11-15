@@ -16,6 +16,23 @@
 
 using namespace ns3;
 
+struct RouterProps
+{
+  Time linkDelay;
+  DataRate linkBandwidth;
+  std::string dir;
+  QueueSize queueSize;
+
+  RouterProps (Time linkDelay, DataRate linkBandwidth, std::string dir,
+               QueueSize queueSize = QueueSize ("2084p"))
+  {
+    this->dir = dir;
+    this->linkDelay = linkDelay;
+    this->linkBandwidth = linkBandwidth;
+    this->queueSize = queueSize;
+  }
+};
+
 class P2PRouter
 {
   // private:

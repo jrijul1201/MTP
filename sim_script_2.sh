@@ -12,13 +12,13 @@ NODES=(40 60 80)
 TCP_FLAVOUR=("TcpNewReno" "TcpBbr" "TcpCubic")
 RTT=(10 50 100 150 200)
 
-cd ../results/
-rm -rf *
+# cd ../results/
+# rm -rf *
 
 cd ../../
 
 
-# first loop iterates over nodes
+# loop iterates over nodes
 for i in {0..2}
 do
 # # second loop iterates over TCP flavours
@@ -27,7 +27,7 @@ for j in {0..2}
 do
 for k in {0..4}
 do
-./ns3 run parking-lot-topology -- --numNodes=${NODES[$i]} --tcpVariant=${TCP_FLAVOUR[$j]} --roundTripTime=${RTT[$k]}
+./ns3 run parking-lot-topology -- --numNodes=${NODES[$i]} --tcpVariant=${TCP_FLAVOUR[$j]} --roundTripTime=${RTT[$k]} --thEnabled=true
 echo "This config ran successfully:" ${NODES[$i]} ${TCP_FLAVOUR[j]} ${RTT[k]}
 done
 done

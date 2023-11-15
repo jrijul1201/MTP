@@ -54,7 +54,7 @@ for i in range(1,3):
     for fileName in os.listdir(dirs[i]):
         basename = fileName.split('.')
         file_path = os.path.join(dirs[i], fileName)
-        if(basename[1] != "dat"):
+        if(basename[1] != "dat" or basename[0] == "drop"):
             continue
         # print(basename, basename[0], constants[i])
         df, path = readDatFileAndConvertToDataFrame(file_path, basename[0]+constants[i])

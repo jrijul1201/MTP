@@ -32,8 +32,6 @@ for folder in folders:
     pdf.showPage()
     pdf.drawImage(os.path.join(results_dir, folder, "plots", img5),50, 50, width=250, height=250)
     pdf.drawImage(os.path.join(results_dir, folder, "plots", img6),300, 50, width=250, height=250)
-    pdf.drawImage(os.path.join(results_dir, folder, "plots", img7),50, 300, width=250, height=250)
-    pdf.drawImage(os.path.join(results_dir, folder, "plots", img8),300, 300, width=250, height=250)
     pdf.showPage()
 
 
