@@ -24,8 +24,11 @@ def compute_d(data_dict):
     # Initialize the 2D array with zeros
     d = []
 
+    # Initialize the running index i
+    i = 0
+
     # Process each timestamp in the data_dict
-    for timestamp, nodes in sorted(data_dict.items()):
+    for _, nodes in sorted(data_dict.items()):
         # Iterate over nodes for each timestamp
         for node in nodes:
             # If node is not present in the dictionary, assign a new index to it
@@ -34,8 +37,10 @@ def compute_d(data_dict):
 
             # Set the corresponding element in the 2D array to 1
             while len(d) <= xi_to_i[node]:
-                d.append([0] * T)
-            d[xi_to_i[node]][int(timestamp)] = 1
+                d.append([0] * T)  # Use the running index i
+            d[xi_to_i[node]][i] = 1
+
+        i += 1
 
     # for row in d:
     #     print(row)
