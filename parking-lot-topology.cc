@@ -23,14 +23,14 @@
 using namespace ns3;
 
 std::string dir = "examples/results/";
-Time stopTime = Seconds (20);
-Time tracingDuration = Seconds (10);
+Time stopTime = Seconds (200);
+Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
 uint32_t numNodes = 10;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
-bool isThresholdAQMEnabled = true;
+bool isThresholdAQMEnabled = false;
 uint32_t stream = 1;
 std::string socketFactory = "ns3::TcpSocketFactory";
 std::string qdiscTypeId = "ns3::FifoQueueDisc";
@@ -303,9 +303,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("stopTime", "Stop time for applications / simulation time will be stopTime",
                 stopTime);
   cmd.AddValue ("recovery", "Recovery algorithm type to use (e.g., ns3::TcpPrrRecovery", recovery);
+  cmd.AddValue ("thEnabled", "Recovery algorithm type to use (e.g., ns3::TcpPrrRecovery",
+                isThresholdAQMEnabled);
   cmd.Parse (argc, argv);
 
-  dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "/";
+  dir += (isThresholdAQMEnabled ? "/WithThresh/" : "WithoutThresh/") + std::to_string (numNodes) + "-" + tcpType +
+         "-" + std::to_string (rtt) + "/";
   numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
   // Set recovery algorithm and TCP variant
   Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
