@@ -25,6 +25,3 @@ for file in "$folder_path"/*; do
 done
 
 python3 compute-d.py "${output_file_path}"
-
-echo "Consolidation complete."
-echo "D has been computed."
