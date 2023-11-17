@@ -24,4 +24,4 @@ for file in "$folder_path"/*; do
     fi
 done
 
-python3 compute-d.py "${output_file_path}"
+python3 compute-sync-metric.py "${output_file_path}"
