@@ -187,6 +187,19 @@ main (int argc, char *argv[])
   std::string recovery = "ns3::TcpClassicRecovery";
   QueueSize queueSize = QueueSize ("2084p");
 
+  CommandLine cmd;
+  cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);
+  cmd.AddValue ("segmentSize", "TCP segment size (bytes)", segmentSize);
+  cmd.AddValue ("delAckCount", "Delayed ack count", delAckCount);
+  cmd.AddValue ("numNodes", "Number of nodes in the sender", numNodes);
+  cmd.AddValue ("roundTripTime", "Round trip time of a network packet", rtt);
+  cmd.AddValue ("tcpVariant", "Type of tcp varient you want to use", tcpType);
+  cmd.AddValue ("stopTime", "Stop time for applications / simulation time will be stopTime",
+                stopTime);
+  cmd.AddValue ("recovery", "Recovery algorithm type to use (e.g., ns3::TcpPrrRecovery", recovery);
+  cmd.AddValue ("withThresh", "AQM is threshold", isThresholdAQMEnabled);
+  cmd.Parse (argc, argv);
+
   if (isThresholdAQMEnabled)
     {
       if (tcpType == "TcpNewReno")
@@ -199,19 +212,8 @@ main (int argc, char *argv[])
         }
     }
 
-  CommandLine cmd;
-  cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);
-  cmd.AddValue ("segmentSize", "TCP segment size (bytes)", segmentSize);
-  cmd.AddValue ("delAckCount", "Delayed ack count", delAckCount);
-  cmd.AddValue ("numNodes", "Number of nodes in the sender", numNodes);
-  cmd.AddValue ("roundTripTime", "Round trip time of a network packet", rtt);
-  cmd.AddValue ("tcpVariant", "Type of tcp varient you want to use", tcpType);
-  cmd.AddValue ("stopTime", "Stop time for applications / simulation time will be stopTime",
-                stopTime);
-  cmd.AddValue ("recovery", "Recovery algorithm type to use (e.g., ns3::TcpPrrRecovery", recovery);
-  cmd.Parse (argc, argv);
-
-  dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "/";
+  dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "-" +
+         (isThresholdAQMEnabled ? "withThresh" : "withoutThresh") + "/";
 
   bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
   DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
@@ -224,7 +226,7 @@ main (int argc, char *argv[])
 
   // Create nodes
   NodeContainer leftNodes, rightNodes;
-  P2PRouter *p2prouter = new P2PRouter (rtt, dir, queueSize, bottleneckBandwidth, qdiscTypeId);
+  P2PRouter *p2prouter = new P2PRouter (rtt, dir, queueSize, bottleneckBandwidth);
   leftNodes.Create (numNodes);
   rightNodes.Create (numNodes);
 
