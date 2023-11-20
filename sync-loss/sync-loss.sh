@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Specify the folder path
-# folder_path="/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/60-TcpNewReno-200-withoutThresh/cwndTraces"
-folder_path="/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/60-TcpNewReno-200-withThresh/cwndTraces"
+folder_path="/home/mic/ns-allinone-3.36.1/ns-3.36.1/examples/results/60-TcpNewReno-10-withoutThresh/cwndTraces"
+# folder_path="/home/mic/ns-allinone-3.36.1/ns-3.36.1/examples/results/60-TcpNewReno-10-withThresh/cwndTraces"
 filename="loss-events.dat"
 output_file_path="${folder_path}/${filename}"
 
@@ -19,7 +19,7 @@ for file in "$folder_path"/*; do
     # Check if the item is a file (not a directory)
     if [ -f "$file" ]; then
         # Run loss-events.py script on the current file with complete filepath
-        python loss-events.py "$file"
+        python3 loss-events.py "$file"
         
         echo "Processed $file"
     fi

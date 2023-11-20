@@ -30,7 +30,7 @@ if len(sys.argv) == 2:
     selected_timestamps = [
         (os.path.splitext(os.path.basename(input_file_path))[0], timestamps[i])
         for i in range(1, len(values))
-        if values[i] <= 0.5 * values[i - 1]
+        if values[i] < values[i - 1]
     ]
 
     # Write the selected timestamps with basename to the fixed output file in the same folder

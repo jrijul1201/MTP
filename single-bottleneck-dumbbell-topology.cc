@@ -226,7 +226,8 @@ main (int argc, char *argv[])
 
   // Create nodes
   NodeContainer leftNodes, rightNodes;
-  P2PRouter *p2prouter = new P2PRouter (rtt, dir, queueSize, bottleneckBandwidth);
+  P2PRouter *p2prouter =
+      new P2PRouter (dir, queueSize, bottleneckBandwidth, MicroSeconds (1), qdiscTypeId);
   leftNodes.Create (numNodes);
   rightNodes.Create (numNodes);
 
