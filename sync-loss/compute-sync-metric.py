@@ -1,3 +1,6 @@
+import csv
+import math
+import os
 import sys
 from collections import defaultdict
 
@@ -98,7 +101,23 @@ def overall_synchronization(s):
     return total_synchronization
 
 
+def save_s_matrix_to_csv(s_matrix, folder_path):
+    csv_file_path = os.path.join(folder_path, "s_matrix.csv")
+
+    with open(csv_file_path, mode="w", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        for row in s_matrix:
+            writer.writerow(row)
+
+    print(f"S matrix saved to: {csv_file_path}")
+
+
+def frobenius_norm(s):
+    return math.sqrt(sum(sum(x**2 for x in row) for row in s))
+
+
 input_file_path = sys.argv[1]
+folder_path = sys.argv[2]
 data_dict = consolidate(input_file_path)
 T = len(data_dict)
 D = compute_d(data_dict)
@@ -106,5 +125,10 @@ N = compute_n(D)
 NN = compute_nn(D)
 S = compute_s(N, NN)
 overall_s = overall_synchronization(S)
+frob_norm = frobenius_norm(S)
+
+save_s_matrix_to_csv(S, folder_path)
+
 
 print(f"Overall synchronisation: {overall_s}")
+print(f"Frobenius norm: {frob_norm}")

@@ -1,8 +1,16 @@
 import os
 import sys
 
+
+def decrease_by_half(new_val, prev_val):
+    return ("--half" in sys.argv) and new_val <= prev_val * 0.5
+
+def decrease_by_one(new_val, prev_val):
+    return ("--one" in sys.argv) and new_val < prev_val
+
+
 # Check if the correct number of command-line arguments is provided
-if len(sys.argv) == 2:
+if len(sys.argv) == 3:
     # Get the input file path from the command-line argument
     input_file_path = sys.argv[1]
 
@@ -30,7 +38,10 @@ if len(sys.argv) == 2:
     selected_timestamps = [
         (os.path.splitext(os.path.basename(input_file_path))[0], timestamps[i])
         for i in range(1, len(values))
-        if values[i] < values[i - 1]
+        if (
+            decrease_by_half(values[i], values[i - 1])
+            or decrease_by_one(values[i], values[i - 1])
+        )
     ]
 
     # Write the selected timestamps with basename to the fixed output file in the same folder
