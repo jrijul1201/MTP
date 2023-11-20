@@ -5,22 +5,21 @@ import sys
 def decrease_by_half(new_val, prev_val):
     return ("--half" in sys.argv) and new_val <= prev_val * 0.5
 
+
 def decrease_by_one(new_val, prev_val):
     return ("--one" in sys.argv) and new_val < prev_val
 
 
 # Check if the correct number of command-line arguments is provided
-if len(sys.argv) == 3:
+if len(sys.argv) == 4:
     # Get the input file path from the command-line argument
     input_file_path = sys.argv[1]
+    output_file_path = sys.argv[2]
 
     # Check if the input file exists
     if not os.path.isfile(input_file_path):
         print(f"Error: Input file '{input_file_path}' not found.")
         sys.exit(1)
-
-    # Generate output file path in the same folder with the fixed name 'loss-events.dat'
-    output_file_path = os.path.join(os.path.dirname(input_file_path), "loss-events.dat")
 
     with open(input_file_path, "r") as input_file:
         lines = input_file.readlines()
