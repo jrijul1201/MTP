@@ -10,30 +10,34 @@ def decrease_by_one(new_val, prev_val):
     return ("--one" in sys.argv) and new_val < prev_val
 
 
-# Check if the correct number of command-line arguments is provided
-if len(sys.argv) == 4:
-    # Get the input file path from the command-line argument
-    input_file_path = sys.argv[1]
-    output_file_path = sys.argv[2]
-
-    # Check if the input file exists
-    if not os.path.isfile(input_file_path):
+def read_data_from_file(input_file_path):
+    try:
+        with open(input_file_path, "r") as input_file:
+            lines = input_file.readlines()
+        return lines
+    except FileNotFoundError:
         print(f"Error: Input file '{input_file_path}' not found.")
         sys.exit(1)
 
-    with open(input_file_path, "r") as input_file:
-        lines = input_file.readlines()
 
+def parse_data(lines):
     timestamps = []
     values = []
 
     # Parse the data
     for line in lines:
-        time, value = map(float, line.split())
-        timestamps.append(time)
-        values.append(value)
+        try:
+            time, value = map(float, line.split())
+            timestamps.append(time)
+            values.append(value)
+        except ValueError:
+            print(f"Error: Invalid data format in line '{line}'.")
+            sys.exit(1)
 
-    # Find timestamps where the new value is less than or equal to half of the previous value
+    return timestamps, values
+
+
+def find_selected_timestamps(timestamps, values, input_file_path):
     selected_timestamps = [
         (os.path.splitext(os.path.basename(input_file_path))[0], timestamps[i])
         for i in range(1, len(values))
@@ -42,8 +46,39 @@ if len(sys.argv) == 4:
             or decrease_by_one(values[i], values[i - 1])
         )
     ]
+    return selected_timestamps
 
-    # Write the selected timestamps with basename to the fixed output file in the same folder
+
+def write_selected_timestamps(output_file_path, selected_timestamps):
     with open(output_file_path, "a") as output_file:
         for basename, timestamp in selected_timestamps:
             output_file.write(f"{basename} {timestamp}\n")
+
+
+def main():
+    # Check if the correct number of command-line arguments is provided
+    if len(sys.argv) == 4:
+        input_file_path = sys.argv[1]
+        output_file_path = sys.argv[2]
+
+        # Read data from the input file
+        lines = read_data_from_file(input_file_path)
+
+        # Parse the data
+        timestamps, values = parse_data(lines)
+
+        # Find timestamps meeting the criteria
+        selected_timestamps = find_selected_timestamps(
+            timestamps, values, input_file_path
+        )
+
+        # Write selected timestamps to the output file
+        write_selected_timestamps(output_file_path, selected_timestamps)
+
+    else:
+        print("Usage: python script.py input_file output_file")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

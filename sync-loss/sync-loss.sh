@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Function to remove existing file
+remove_existing_file() {
+    local file_path="$1"
+    if [ -e "$file_path" ]; then
+        rm "$file_path"
+        echo "Existing $(basename "$file_path") removed."
+    fi
+}
+
 # Specify the folder path
 folder_paths=(
     "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/60-TcpNewReno-10-withoutThresh/cwndTraces"
@@ -14,19 +23,9 @@ for folder_path in "${folder_paths[@]}"; do
     output_file_path_one="${folder_path}/${filename_one}"
     output_file_path_half="${folder_path}/${filename_half}"
     
-    # Check if the file exists before proceeding
-    if [ -e "${output_file_path_one}" ]; then
-        # Remove the existing file
-        rm "${output_file_path_one}"
-        echo "Existing ${filename_one} removed."
-    fi
-    
-    # Check if the file exists before proceeding
-    if [ -e "${output_file_path_half}" ]; then
-        # Remove the existing file
-        rm "${output_file_path_half}"
-        echo "Existing ${filename_half} removed."
-    fi
+    # Remove existing files
+    remove_existing_file "$output_file_path_one"
+    remove_existing_file "$output_file_path_half"
     
     # Iterate over each file in the folder
     for file in "$folder_path"/*; do
@@ -48,8 +47,8 @@ for folder_path in "${folder_paths[@]}"; do
         fi
     done
     
+    # Log processing completion
     echo "Processed $folder_path"
     python3 compute-sync-metric.py "${output_file_path_half}" "${folder_path}" --half
     python3 compute-sync-metric.py "${output_file_path_one}" "${folder_path}" --one
-    
 done
