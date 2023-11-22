@@ -1,10 +1,10 @@
 NODES=(60)
-TCP_FLAVOUR=("TcpNewReno" "TcpCubic")
+TCP_FLAVOUR=("TcpCubic" "TcpNewReno")
 RTT=(10 200)
 THRESH=(true false)
 
 cd ../results/
-rm -rf *
+# rm -rf *
 
 cd ../../
 
@@ -19,7 +19,7 @@ do
         for k in {0..1}
         do
             # # fourth loop iterate over Thresh
-            for l in {0..0}
+            for l in {0..1}
             do
                 echo "Running this config:" ${NODES[$i]} ${TCP_FLAVOUR[j]} ${RTT[k]} ${THRESH[l]}
                 ./ns3 run parking-lot-topology -- --numNodes=${NODES[$i]} --tcpVariant=${TCP_FLAVOUR[$j]} --roundTripTime=${RTT[$k]} --thEnabled=${THRESH[$l]}
