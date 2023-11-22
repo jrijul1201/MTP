@@ -39,7 +39,7 @@ std::string recovery = "ns3::TcpClassicRecovery";
 QueueSize queueSize = QueueSize ("2084p");
 uint32_t groups = 3; // Number of sources and destinations groups
 DataRate bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
-DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
+DataRate accessLinkBandwidth;
 Time minimumLinkDelay = MicroSeconds (1);
 Time *accessLinkDelays;
 std::ofstream myfile;
@@ -310,6 +310,8 @@ main (int argc, char *argv[])
   dir += (isThresholdAQMEnabled ? "/WithThresh/" : "WithoutThresh/") + std::to_string (numNodes) +
          "-" + tcpType + "-" + std::to_string (rtt) + "/";
   numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
+  accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
+
   // Set recovery algorithm and TCP variant
   Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
                       TypeIdValue (TypeId::LookupByName (recovery)));
