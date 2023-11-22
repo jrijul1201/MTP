@@ -316,6 +316,21 @@ main (int argc, char *argv[])
   // Set recovery algorithm and TCP variant
   Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
                       TypeIdValue (TypeId::LookupByName (recovery)));
+  Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue ("ns3::" + tcpType));
+
+  // Set default sender and receiver buffer size as 1MB
+  Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1 << 27));
+  // Receive buffer size is 1GB to allow for sufficiently large receiving window
+  Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (1 << 30));
+
+  // Set default initial congestion window as 10 segments
+  Config::SetDefault ("ns3::TcpSocket::InitialCwnd", UintegerValue (10));
+
+  // Set default delayed ack count to a specified value
+  Config::SetDefault ("ns3::TcpSocket::DelAckCount", UintegerValue (delAckCount));
+
+  // Set default segment size of TCP packet to a specified value
+  Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (segmentSize));
 
   // Create directories to store dat files
   struct stat buffer;
@@ -459,21 +474,6 @@ main (int argc, char *argv[])
     }
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
-  Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue ("ns3::" + tcpType));
-
-  // Set default sender and receiver buffer size as 1MB
-  Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1 << 27));
-  // Receive buffer size is 1GB to allow for sufficiently large receiving window
-  Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (1 << 30));
-
-  // Set default initial congestion window as 10 segments
-  Config::SetDefault ("ns3::TcpSocket::InitialCwnd", UintegerValue (10));
-
-  // Set default delayed ack count to a specified value
-  Config::SetDefault ("ns3::TcpSocket::DelAckCount", UintegerValue (delAckCount));
-
-  // Set default segment size of TCP packet to a specified value
-  Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (segmentSize));
 
   // Enable/Disable SACK in TCP
   // Config::SetDefault ("ns3::TcpSocketBase::Sack", BooleanValue (isSack));
