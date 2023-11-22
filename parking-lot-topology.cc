@@ -281,17 +281,6 @@ saveQueueStats (P2PRouter *p2prouter)
 int
 main (int argc, char *argv[])
 {
-  if (isThresholdAQMEnabled)
-    {
-      if (tcpType == "TcpNewReno")
-        {
-          queueSize = QueueSize ("15p");
-        }
-      else
-        {
-          queueSize = QueueSize ("50p");
-        }
-    }
 
   CommandLine cmd;
   cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);
@@ -307,7 +296,19 @@ main (int argc, char *argv[])
                 isThresholdAQMEnabled);
   cmd.Parse (argc, argv);
 
-  dir += (isThresholdAQMEnabled ? "/WithThresh/" : "WithoutThresh/") + std::to_string (numNodes) +
+  if (isThresholdAQMEnabled)
+    {
+      if (tcpType == "TcpNewReno")
+        {
+          queueSize = QueueSize ("15p");
+        }
+      else
+        {
+          queueSize = QueueSize ("50p");
+        }
+    }
+
+  dir += (isThresholdAQMEnabled ? "WithThresh/" : "WithoutThresh/") + std::to_string (numNodes) +
          "-" + tcpType + "-" + std::to_string (rtt) + "/";
   numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
   accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
