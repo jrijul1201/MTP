@@ -1,3 +1,5 @@
+#ifndef Router
+#define Router
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,20 +18,38 @@
 
 using namespace ns3;
 
+struct LinkProps
+{
+  int linkExist = 0;
+  Time linkDelay;
+  DataRate linkBandwidth;
+  LinkProps (Time linkDelay, DataRate linkBandwidth)
+  {
+    this->linkDelay = linkDelay;
+    this->linkBandwidth = linkBandwidth;
+  }
+  LinkProps (int n)
+  {
+    this->linkExist = 0;
+  }
+};
+
 struct RouterProps
 {
   Time linkDelay;
   DataRate linkBandwidth;
   std::string dir;
   QueueSize queueSize;
+  std::string qdiscTypeId;
 
   RouterProps (Time linkDelay, DataRate linkBandwidth, std::string dir,
-               QueueSize queueSize = QueueSize ("2084p"))
+               QueueSize queueSize, std::string qdiscTypeId)
   {
     this->dir = dir;
     this->linkDelay = linkDelay;
     this->linkBandwidth = linkBandwidth;
     this->queueSize = queueSize;
+    this->qdiscTypeId = qdiscTypeId;
   }
 };
 
@@ -45,7 +65,6 @@ public:
   std::string dir;
   QueueSize queueSize;
   TypeId qdTid;
-  uint32_t rtt;
 
   NodeContainer routers;
   // Create the point-to-point link helpers and connect two router nodes
@@ -55,14 +74,13 @@ public:
   TrafficControlHelper tch;
 
   // Constructor
-  P2PRouter (uint32_t rtt, std::string dir, QueueSize queueSize = QueueSize ("2084p"),
+  P2PRouter (std::string dir, QueueSize queueSize = QueueSize ("2084p"),
              DataRate linkBandwidth = DataRate ("100Mbps"), Time linkDelay = MicroSeconds (1),
              std::string qdiscTypeId = "ns3::FifoQueueDisc")
   {
     this->linkBandwidth = linkBandwidth;
     this->linkDelay = linkDelay;
     this->dir = dir;
-    this->rtt = rtt;
     this->qdiscTypeId = qdiscTypeId;
     this->queueSize = queueSize;
     this->prevBytes = 0;
@@ -98,3 +116,5 @@ public:
     tch.SetQueueLimits ("ns3::DynamicQueueLimits");
   }
 };
+
+#endif

@@ -17,12 +17,11 @@
 #include "ns3/applications-module.h"
 #include "ns3/traffic-control-module.h"
 #include "ns3/flow-monitor-module.h"
-#include "router.h"
-#include "destination-data.h"
+#include "network.h"
 
 using namespace ns3;
 
-std::string dir = "examples/results/";
+std::string dir = "examples/results/sandwich-topology/";
 Time stopTime = Seconds (200);
 Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
@@ -46,6 +45,10 @@ std::ofstream myfile;
 std::map<Ipv4Address, DestinationData *> IPtoDestinationData;
 std::vector<double> throughputPerGroup;
 uint32_t numNodesInGroup;
+uint32_t numRouters = 5;
+
+vector<vector<int>> matrix = {
+    {0, 1, 0, 1, 0}, {0, 0, 1, 0, 1}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}, {0, 0, 0, 0, 0}};
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -278,6 +281,36 @@ saveQueueStats (P2PRouter *p2prouter)
   myfile.close ();
 }
 
+vector<RouterProps *>
+getRouterProps ()
+{
+  vector<RouterProps *> routerProps (numRouters);
+  int i = 0;
+  for (auto &props : routerProps)
+    {
+      i++;
+      props = new RouterProps (minimumLinkDelay, bottleneckBandwidth,
+                               dir + "router" + std::to_string (i) + '/', queueSize, qdiscTypeId);
+    }
+  return routerProps;
+}
+
+void
+generateMatrix (NetworkMatrix *networkMatrix)
+{
+  for (int i = 0; i < numRouters; i++)
+    {
+      for (int j = i; j < numRouters; j++)
+        {
+          if (matrix[i][j])
+            {
+              LinkProps *props = new LinkProps (minimumLinkDelay, bottleneckBandwidth);
+              networkMatrix->addEdge (i, j, props);
+            }
+        }
+    }
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -307,13 +340,10 @@ main (int argc, char *argv[])
                 isThresholdAQMEnabled);
   cmd.Parse (argc, argv);
 
-  dir += (isThresholdAQMEnabled ? "/WithThresh/" : "WithoutThresh/") + std::to_string (numNodes) + "-" + tcpType +
-         "-" + std::to_string (rtt) + "/";
-  numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
-  // Set recovery algorithm and TCP variant
+  dir += (isThresholdAQMEnabled ? "WithThresh/" : "WithoutThresh/") + std::to_string (numNodes) +
+         "-" + tcpType + "-" + std::to_string (rtt) + "/";
   Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
                       TypeIdValue (TypeId::LookupByName (recovery)));
-
   // Create directories to store dat files
   struct stat buffer;
   [[maybe_unused]] int retVal;
@@ -332,126 +362,59 @@ main (int argc, char *argv[])
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
 
   // Create nodes
-  std::vector<P2PRouter *> p2prouters;
+  vector<RouterProps *> routerProps = getRouterProps ();
 
-  for (uint32_t i = 0; i < groups - 1; i++)
-    {
-      p2prouters.push_back (new P2PRouter (dir + "router" + std::to_string (i) + '/',
-                                           queueSize, bottleneckBandwidth, minimumLinkDelay,
-                                           qdiscTypeId));
-    }
+  NetworkMatrix *networkMatrix = new NetworkMatrix (numRouters);
+  generateMatrix (networkMatrix);
 
-  // a b c sources and a b c destinations
-  std::vector<NodeContainer> sources (groups, NodeContainer ()),
-      destinations (groups, NodeContainer ());
+  Network *network = new Network (routerProps, *networkMatrix);
+  network->createRouters ();
+  network->connectRouters ();
 
-  for (uint32_t i = 0; i < groups; i++)
-    {
-      sources[i].Create (numNodesInGroup);
-    }
+  NodeContainer sources, destinations;
+  sources.Create (numNodes);
+  destinations.Create (numNodes);
 
-  for (uint32_t i = 0; i < groups; i++)
-    {
-      destinations[i].Create (numNodesInGroup);
-    }
+  vector<NetDeviceContainer> sourceToRouter, routerToDestination;
 
-  std::vector<std::vector<NetDeviceContainer>> sourceToRouter (groups,
-                                                               std::vector<NetDeviceContainer> ()),
-      routerToDestination (groups, std::vector<NetDeviceContainer> ());
-  std::vector<NetDeviceContainer> routerToRouter;
-
-  // Create the point-to-point link helpers and connect leaf nodes to router
   PointToPointHelper pointToPointLeaf;
   pointToPointLeaf.DisableFlowControl ();
   pointToPointLeaf.SetDeviceAttribute ("DataRate", DataRateValue (accessLinkBandwidth));
   pointToPointLeaf.DisableFlowControl ();
 
-  // configuring group b & c b/w routers, a will be done later.
-  for (uint32_t j = 1; j < groups; ++j)
+  for (uint32_t j = 0; j < numNodes; ++j)
     {
       // 100 - 1 - 1 divided by 4
-      accessLinkDelays = variedAccessLinkDelays (numNodesInGroup, (rtt / 4));
-      for (uint32_t i = 0; i < numNodesInGroup; ++i)
-        {
-          pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (accessLinkDelays[i]));
-          sourceToRouter[j].push_back (
-              pointToPointLeaf.Install (sources[j].Get (i), p2prouters[j - 1]->routers.Get (0)));
-          routerToDestination[j].push_back (pointToPointLeaf.Install (
-              p2prouters[j - 1]->routers.Get (1), destinations[j].Get (i)));
-        }
-    }
-
-  // configuring group a
-  accessLinkDelays = variedAccessLinkDelays (numNodesInGroup, (rtt / 4));
-  for (uint32_t i = 0; i < numNodesInGroup; ++i)
-    {
-      pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (accessLinkDelays[i]));
-      sourceToRouter[0].push_back (
-          pointToPointLeaf.Install (sources[0].Get (i), p2prouters[0]->routers.Get (0)));
-      routerToDestination[0].push_back (pointToPointLeaf.Install (
-          p2prouters[groups - 2]->routers.Get (1), destinations[0].Get (i)));
-    }
-
-  // connecting all routers with p2p link
-  pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (minimumLinkDelay));
-  pointToPointLeaf.SetDeviceAttribute ("DataRate",
-                                       DataRateValue (bottleneckBandwidth.GetBitRate ()));
-  for (uint32_t j = 0; j < groups - 2; ++j)
-    {
-      routerToRouter.push_back (pointToPointLeaf.Install (p2prouters[j]->routers.Get (1),
-                                                          p2prouters[j + 1]->routers.Get (0)));
+      accessLinkDelays = variedAccessLinkDelays (numNodes, (rtt / 4));
+      pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (accessLinkDelays[j]));
+      sourceToRouter.push_back (
+          pointToPointLeaf.Install (sources.Get (j), network->getRouters (0)->routers.Get (0)));
+      routerToDestination.push_back (pointToPointLeaf.Install (
+          network->getRouters (4)->routers.Get (1), destinations.Get (j)));
     }
 
   InternetStackHelper internetStack;
-  for (auto nodes : sources)
-    {
-      internetStack.Install (nodes);
-    }
-  for (auto nodes : destinations)
-    {
-      internetStack.Install (nodes);
-    }
-  for (auto p2prouter : p2prouters)
-    {
-      internetStack.Install (p2prouter->routers);
-    }
+
+  internetStack.Install (sources);
+  internetStack.Install (destinations);
+
+  network->installInternetStack (&internetStack);
 
   // Assign IP addresses to all the network devices
   // TODO: For N > 3.2k, change bitmask to accomodate larger network
+  vector<Ipv4Address> destinationIPAddresses;
   Ipv4AddressHelper ipAddresses ("10.0.0.0", "255.255.0.0");
+  network->assignIpAddress (&ipAddresses);
 
-  for (auto p2prouter : p2prouters)
+  for (auto s2rLink : sourceToRouter)
     {
-      ipAddresses.Assign (p2prouter->netDevice);
+      ipAddresses.Assign (s2rLink);
       ipAddresses.NewNetwork ();
     }
-  for (auto r2rLink : routerToRouter)
+  for (auto r2dLink : routerToDestination)
     {
-      ipAddresses.Assign (r2rLink);
+      destinationIPAddresses.push_back (ipAddresses.Assign (r2dLink).GetAddress (1));
       ipAddresses.NewNetwork ();
-    }
-  for (auto s2rLinks : sourceToRouter)
-    {
-      for (auto s2rLink : s2rLinks)
-        {
-          ipAddresses.Assign (s2rLink);
-          ipAddresses.NewNetwork ();
-        }
-    }
-
-  std::vector<std::vector<Ipv4Address>> destinationIPAddresses (groups,
-                                                                std::vector<Ipv4Address> ());
-  Ipv4Address tmpIP;
-
-  for (uint32_t j = 0; j < groups; ++j)
-    {
-      for (uint32_t i = 0; i < numNodesInGroup; i++)
-        {
-          tmpIP = ipAddresses.Assign (routerToDestination[j][i]).GetAddress (1);
-          destinationIPAddresses[j].push_back (tmpIP);
-          ipAddresses.NewNetwork ();
-          IPtoDestinationData[tmpIP] = new DestinationData (j, i, dir);
-        }
     }
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
@@ -477,11 +440,11 @@ main (int argc, char *argv[])
   AsciiTraceHelper asciiTraceHelper;
   Ptr<OutputStreamWrapper> streamWrapper;
 
-  for (auto p2prouter : p2prouters)
+  for (auto p2prouter : network->p2prouters)
     {
+      // Calls function to check queue size
       p2prouter->installQueueDiscipline ();
 
-      // Calls function to check queue size
       Simulator::Schedule (tracingStartTime, &CheckQueueSize, p2prouter);
 
       // Create dat to store packets dropped and marked at the router
@@ -491,24 +454,20 @@ main (int argc, char *argv[])
     }
 
   // Install packet sink at receiver side for N nodes
+
   uint16_t port = 50000;
-  for (uint32_t j = 0; j < groups; j++)
+  for (uint32_t j = 0; j < numNodes; j++)
     {
-      for (uint32_t i = 0; i < numNodesInGroup; i++)
-        {
-          InstallPacketSink (destinations[j].Get (i), port, socketFactory);
-        }
+      // NodeId 0 and 1 are assigned to routers, hence (2 + i) will be the nodeId
+      InstallBulkSend (sources.Get (j), destinationIPAddresses[j], port, socketFactory,
+                       sources.Get (j)->GetId (), 0, MakeCallback (&CwndChange));
+    }
+
+  for (uint32_t j = 0; j < numNodes; j++)
+    {
+      InstallPacketSink (destinations.Get (j), port, socketFactory);
     }
   // Install BulkSend application for N nodes
-  for (uint32_t j = 0; j < groups; j++)
-    {
-      for (uint32_t i = 0; i < numNodesInGroup; i++)
-        {
-          // NodeId 0 and 1 are assigned to routers, hence (2 + i) will be the nodeId
-          InstallBulkSend (sources[j].Get (i), destinationIPAddresses[j][i], port, socketFactory,
-                           sources[j].Get (i)->GetId (), 0, MakeCallback (&CwndChange));
-        }
-    }
 
   // Enable PCAP on all the point to point interfaces
   // pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);
@@ -521,12 +480,12 @@ main (int argc, char *argv[])
   //   {
   //     Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier, p2prouter);
   //   }
-  Simulator::Schedule (tracingStartTime, &TraceThroughput, monitor, classifier);
+  // Simulator::Schedule (tracingStartTime, &TraceThroughput, monitor, classifier);
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
 
-  for (auto p2prouter : p2prouters)
+  for (auto p2prouter : network->p2prouters)
     {
       saveQueueStats (p2prouter);
     }

@@ -136,6 +136,18 @@ build_example(
 )
 
 build_example(
+  NAME sandwich-network-topology
+  SOURCE_FILES sandwich-network-topology.cc
+  LIBRARIES_TO_LINK
+    ${libpoint-to-point}
+    ${libinternet}
+    ${libapplications}
+    ${libtraffic-control}
+    ${libnetwork}
+    ${libflow-monitor}
+)
+
+build_example(
   NAME tcp-validation
   SOURCE_FILES tcp-validation.cc
   LIBRARIES_TO_LINK
