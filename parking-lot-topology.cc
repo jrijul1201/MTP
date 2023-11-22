@@ -307,8 +307,8 @@ main (int argc, char *argv[])
                 isThresholdAQMEnabled);
   cmd.Parse (argc, argv);
 
-  dir += (isThresholdAQMEnabled ? "/WithThresh/" : "WithoutThresh/") + std::to_string (numNodes) + "-" + tcpType +
-         "-" + std::to_string (rtt) + "/";
+  dir += (isThresholdAQMEnabled ? "/WithThresh/" : "WithoutThresh/") + std::to_string (numNodes) +
+         "-" + tcpType + "-" + std::to_string (rtt) + "/";
   numNodesInGroup = numNodes / 2; // Number of sources and destinations groups
   // Set recovery algorithm and TCP variant
   Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
@@ -336,9 +336,10 @@ main (int argc, char *argv[])
 
   for (uint32_t i = 0; i < groups - 1; i++)
     {
-      p2prouters.push_back (new P2PRouter (dir + "router" + std::to_string (i) + '/',
-                                           queueSize, bottleneckBandwidth, minimumLinkDelay,
-                                           qdiscTypeId));
+      p2prouters.push_back (
+          new P2PRouter (dir + "router" + std::to_string (i) + '/', queueSize,
+                         DataRate (bottleneckBandwidth.GetBitRate () * std::pow (0.8, i)),
+                         minimumLinkDelay, qdiscTypeId));
     }
 
   // a b c sources and a b c destinations
