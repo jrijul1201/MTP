@@ -4,7 +4,7 @@ RTT=(10 200)
 THRESH=(true false)
 
 cd ../results/
-# rm -rf *
+rm -rf *
 
 cd ../../
 
@@ -28,3 +28,11 @@ do
         done
     done
 done
+
+cd examples/results/
+
+bash plot-single.sh
+
+git add .
+git commit -m "single bottleneck"
+git push

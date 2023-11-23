@@ -113,7 +113,7 @@ def plotCwnds():
         if baseName[1] != "dat":
             continue
         df, path = readDatFileAndConvertToDataFrame(file_path, baseName[0])
-        reducedX, reducedY = reduce_array(df[0], df[1], 0.2)
+        reducedX, reducedY = df[0], df[1]
         xValues.append(reducedX)
         yValues.append(reducedY)
 

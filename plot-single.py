@@ -64,7 +64,7 @@ def plotQueues():
     yValues = []
     for queueSizePath in routerPaths:
         df, path = readDatFileAndConvertToDataFrame(queueSizePath, "")
-        reducexX, reducedY = df[0], df[1]
+        reducexX, reducedY = reduce_array(df[0], df[1], 0.2)
         xValues.append(reducexX)
         yValues.append(reducedY)
     plotAndSaveGraph(
