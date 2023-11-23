@@ -422,18 +422,19 @@ main (int argc, char *argv[])
     }
 
   InternetStackHelper internetStack;
-  for (auto nodes : sources)
-    {
-      internetStack.Install (nodes);
-    }
-  for (auto nodes : destinations)
-    {
-      internetStack.Install (nodes);
-    }
-  for (auto p2prouter : p2prouters)
-    {
-      internetStack.Install (p2prouter->routers);
-    }
+  // for (auto nodes : sources)
+  //   {
+  //     internetStack.Install (nodes);
+  //   }
+  // for (auto nodes : destinations)
+  //   {
+  //     internetStack.Install (nodes);
+  //   }
+  // for (auto p2prouter : p2prouters)
+  //   {
+  //     internetStack.Install (p2prouter->routers);
+  //   }
+  internetStack.InstallAll ();
 
   // Assign IP addresses to all the network devices
   // TODO: For N > 3.2k, change bitmask to accomodate larger network

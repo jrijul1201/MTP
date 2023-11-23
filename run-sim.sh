@@ -1,5 +1,5 @@
 NODES=(60)
-TCP_FLAVOUR=("TcpNewReno" "TcpCubic")
+TCP_FLAVOUR=("TcpCubic" "TcpNewReno")
 RTT=(10 200)
 THRESH=(true false)
 
@@ -35,5 +35,5 @@ cd examples/results/
 
 
 git add .
-git commit -m "single bottleneck"
+git commit -m "parking-lot"
 git push

@@ -3,7 +3,7 @@
 # Assuming the Python script is named makePlots.py
 python_script="plot-parking-lot.py"
 # Get the list of folders in the specified directory
-main_folder="/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-sandwich/results-sandwich"
+main_folder="/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-parking-lot-queuesize/results-sandwich"
 folders=($(ls -d ${main_folder}/*/*))
 
 # Iterate over each folder and execute the Python script

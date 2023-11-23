@@ -42,8 +42,8 @@ struct RouterProps
   QueueSize queueSize;
   std::string qdiscTypeId;
 
-  RouterProps (Time linkDelay, DataRate linkBandwidth, std::string dir,
-               QueueSize queueSize, std::string qdiscTypeId)
+  RouterProps (Time linkDelay, DataRate linkBandwidth, std::string dir, QueueSize queueSize,
+               std::string qdiscTypeId)
   {
     this->dir = dir;
     this->linkDelay = linkDelay;
@@ -96,6 +96,7 @@ public:
 
     pointToPointRouter.SetDeviceAttribute ("DataRate", DataRateValue (linkBandwidth));
     pointToPointRouter.SetChannelAttribute ("Delay", TimeValue (linkDelay));
+    pointToPointRouter.DisableFlowControl ();
     netDevice = pointToPointRouter.Install (routers.Get (0), routers.Get (1));
     pointToPointRouter.DisableFlowControl ();
     std::string dirToSave = "mkdir -p " + dir;
