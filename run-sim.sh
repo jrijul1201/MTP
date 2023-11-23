@@ -35,5 +35,5 @@ cd examples/results/
 
 
 git add .
-git commit -m "parking-lot case1"
+git commit -m "parking-lot 100 100"
 git push
