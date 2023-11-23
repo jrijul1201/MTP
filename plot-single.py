@@ -55,7 +55,7 @@ routerPaths = [
     # absolute_path + "/router0/queueSize.dat",
     # absolute_path + "/router1/queueSize.dat",
     absolute_path
-    + "/queue-size.dat",
+    + "/queueSize.dat",
 ]
 
 
@@ -80,6 +80,8 @@ def plotQueues():
 
 
 def plotCwnds():
+    xValues = []
+    yValues = []
     dirList = os.listdir(cwnd_folder)
 
     random_integers = random.sample(range(0, len(dirList)), 8)

@@ -109,8 +109,8 @@ public:
 
     // Install queue discipline on router
     tch.SetRootQueueDisc (qdiscTypeId);
-    tch.Uninstall (routers.Get (0)->GetDevice (0));
-    qd.Add (tch.Install (routers.Get (0)->GetDevice (0)).Get (0));
+    tch.Uninstall (netDevice);
+    qd.Add (tch.Install (netDevice).Get (0));
 
     // Enable BQL
     tch.SetQueueLimits ("ns3::DynamicQueueLimits");

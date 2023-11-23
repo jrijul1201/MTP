@@ -60,7 +60,8 @@ CheckQueueSize (Ptr<QueueDisc> queue)
 
   // Check queue size every 1/100 of a second
   Simulator::Schedule (Seconds (0.001), &CheckQueueSize, queue);
-  std::ofstream fPlotQueue (std::stringstream (dir + "queue-size.dat").str ().c_str (), std::ios::out | std::ios::app);
+  std::ofstream fPlotQueue (std::stringstream (dir + "queue-size.dat").str ().c_str (),
+                            std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << qSize << std::endl;
   fPlotQueue.close ();
 }
@@ -83,16 +84,18 @@ DropAtQueue (Ptr<OutputStreamWrapper> stream, Ptr<const QueueDiscItem> item)
 
 // Trace Function for cwnd
 void
-TraceCwnd (uint32_t node, uint32_t cwndWindow,
-           Callback <void, uint32_t, uint32_t> CwndTrace)
+TraceCwnd (uint32_t node, uint32_t cwndWindow, Callback<void, uint32_t, uint32_t> CwndTrace)
 {
-  Config::ConnectWithoutContext ("/NodeList/" + std::to_string (node) + "/$ns3::TcpL4Protocol/SocketList/" + std::to_string (cwndWindow) + "/CongestionWindow", CwndTrace);
+  Config::ConnectWithoutContext ("/NodeList/" + std::to_string (node) +
+                                     "/$ns3::TcpL4Protocol/SocketList/" +
+                                     std::to_string (cwndWindow) + "/CongestionWindow",
+                                 CwndTrace);
 }
 
 // Function to install BulkSend application
-void InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string socketFactory,
-                      uint32_t nodeId, uint32_t cwndWindow,
-                      Callback <void, uint32_t, uint32_t> CwndTrace)
+void
+InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string socketFactory,
+                 uint32_t nodeId, uint32_t cwndWindow, Callback<void, uint32_t, uint32_t> CwndTrace)
 {
   BulkSendHelper source (socketFactory, InetSocketAddress (address, port));
   source.SetAttribute ("MaxBytes", UintegerValue (0));
@@ -103,7 +106,8 @@ void InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::s
 }
 
 // Function to install sink application
-void InstallPacketSink (Ptr<Node> node, uint16_t port, std::string socketFactory)
+void
+InstallPacketSink (Ptr<Node> node, uint16_t port, std::string socketFactory)
 {
   PacketSinkHelper sink (socketFactory, InetSocketAddress (Ipv4Address::GetAny (), port));
   ApplicationContainer sinkApps = sink.Install (node);
@@ -111,7 +115,8 @@ void InstallPacketSink (Ptr<Node> node, uint16_t port, std::string socketFactory
   sinkApps.Stop (stopTime);
 }
 
-int main (int argc, char *argv[])
+int
+main (int argc, char *argv[])
 {
   uint32_t stream = 1;
   std::string socketFactory = "ns3::TcpSocketFactory";
@@ -122,32 +127,39 @@ int main (int argc, char *argv[])
   std::string recovery = "ns3::TcpClassicRecovery";
 
   CommandLine cmd;
-  cmd.AddValue ("tcpTypeId", "TCP variant to use (e.g., ns3::TcpNewReno, ns3::TcpLinuxReno, etc.)", tcpTypeId);
+  cmd.AddValue ("tcpTypeId", "TCP variant to use (e.g., ns3::TcpNewReno, ns3::TcpLinuxReno, etc.)",
+                tcpTypeId);
   cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);
   cmd.AddValue ("segmentSize", "TCP segment size (bytes)", segmentSize);
   cmd.AddValue ("delAckCount", "Delayed ack count", delAckCount);
   cmd.AddValue ("enableSack", "Flag to enable/disable sack in TCP", isSack);
-  cmd.AddValue ("stopTime", "Stop time for applications / simulation time will be stopTime", stopTime);
+  cmd.AddValue ("stopTime", "Stop time for applications / simulation time will be stopTime",
+                stopTime);
   cmd.AddValue ("recovery", "Recovery algorithm type to use (e.g., ns3::TcpPrrRecovery", recovery);
   cmd.Parse (argc, argv);
 
   TypeId qdTid;
-  NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (qdiscTypeId, &qdTid), "TypeId " << qdiscTypeId << " not found");
+  NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (qdiscTypeId, &qdTid),
+                       "TypeId " << qdiscTypeId << " not found");
 
   // Set recovery algorithm and TCP variant
-  Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType", TypeIdValue (TypeId::LookupByName (recovery)));
+  Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
+                      TypeIdValue (TypeId::LookupByName (recovery)));
   if (tcpTypeId.compare ("ns3::TcpWestwoodPlus") == 0)
     {
       // TcpWestwoodPlus is not an actual TypeId name; we need TcpWestwood here
-      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpWestwood::GetTypeId ()));
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType",
+                          TypeIdValue (TcpWestwood::GetTypeId ()));
       // the default protocol type in ns3::TcpWestwood is WESTWOOD
       Config::SetDefault ("ns3::TcpWestwood::ProtocolType", EnumValue (TcpWestwood::WESTWOODPLUS));
     }
   else
     {
       TypeId tcpTid;
-      NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (tcpTypeId, &tcpTid), "TypeId " << tcpTypeId << " not found");
-      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TypeId::LookupByName (tcpTypeId)));
+      NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (tcpTypeId, &tcpTid),
+                           "TypeId " << tcpTypeId << " not found");
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType",
+                          TypeIdValue (TypeId::LookupByName (tcpTypeId)));
     }
 
   // Create nodes
@@ -156,19 +168,19 @@ int main (int argc, char *argv[])
   leftNodes.Create (1);
   rightNodes.Create (1);
 
-  std::vector <NetDeviceContainer> leftToRouter;
-  std::vector <NetDeviceContainer> routerToRight;
+  std::vector<NetDeviceContainer> leftToRouter;
+  std::vector<NetDeviceContainer> routerToRight;
 
   // Create the point-to-point link helpers and connect two router nodes
   PointToPointHelper pointToPointRouter;
-  pointToPointRouter.SetDeviceAttribute  ("DataRate", StringValue ("1Mbps"));
+  pointToPointRouter.SetDeviceAttribute ("DataRate", StringValue ("1Mbps"));
   pointToPointRouter.SetChannelAttribute ("Delay", StringValue ("10ms"));
   NetDeviceContainer r1r2ND = pointToPointRouter.Install (routers.Get (0), routers.Get (1));
 
   // Create the point-to-point link helpers and connect leaf nodes to router
   PointToPointHelper pointToPointLeaf;
-  pointToPointLeaf.SetDeviceAttribute    ("DataRate", StringValue ("10Mbps"));
-  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("1ms"));
+  pointToPointLeaf.SetDeviceAttribute ("DataRate", StringValue ("10Mbps"));
+  pointToPointLeaf.SetChannelAttribute ("Delay", StringValue ("1ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (0), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (0)));
 
@@ -184,12 +196,12 @@ int main (int argc, char *argv[])
   Ipv4InterfaceContainer r1r2IPAddress = ipAddresses.Assign (r1r2ND);
   ipAddresses.NewNetwork ();
 
-  std::vector <Ipv4InterfaceContainer> leftToRouterIPAddress;
-  leftToRouterIPAddress.push_back (ipAddresses.Assign (leftToRouter [0]));
+  std::vector<Ipv4InterfaceContainer> leftToRouterIPAddress;
+  leftToRouterIPAddress.push_back (ipAddresses.Assign (leftToRouter[0]));
   ipAddresses.NewNetwork ();
 
-  std::vector <Ipv4InterfaceContainer> routerToRightIPAddress;
-  routerToRightIPAddress.push_back (ipAddresses.Assign (routerToRight [0]));
+  std::vector<Ipv4InterfaceContainer> routerToRightIPAddress;
+  routerToRightIPAddress.push_back (ipAddresses.Assign (routerToRight[0]));
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
@@ -227,7 +239,7 @@ int main (int argc, char *argv[])
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
   retVal = system ((dirToSave + "/cwndTraces/").c_str ());
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
-NS_UNUSED (retVal);
+  NS_UNUSED (retVal);
 
   // Set default parameters for queue discipline
   Config::SetDefault (qdiscTypeId + "::MaxSize", QueueSizeValue (QueueSize ("100p")));
@@ -257,12 +269,13 @@ NS_UNUSED (retVal);
   InstallPacketSink (rightNodes.Get (0), port, "ns3::TcpSocketFactory");
 
   // Install BulkSend application
-  InstallBulkSend (leftNodes.Get (0), routerToRightIPAddress [0].GetAddress (1), port, socketFactory, 2, 0, MakeCallback (&CwndChange));
+  InstallBulkSend (leftNodes.Get (0), routerToRightIPAddress[0].GetAddress (1), port, socketFactory,
+                   2, 0, MakeCallback (&CwndChange));
 
   // Enable PCAP on all the point to point interfaces
   pointToPointLeaf.EnablePcapAll (dir + "pcap/ns-3", true);
   AsciiTraceHelper ascii;
-  pointToPointLeaf.EnableAsciiAll (ascii.CreateFileStream (dir+"tcp.tr"));
+  pointToPointLeaf.EnableAsciiAll (ascii.CreateFileStream (dir + "tcp.tr"));
   pointToPointRouter.EnableAsciiAll (ascii.CreateFileStream (dir + "tcpRouter.tr"));
 
   Simulator::Stop (stopTime);
