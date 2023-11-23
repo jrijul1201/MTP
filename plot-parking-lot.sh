@@ -10,7 +10,7 @@ folders=($(ls -d ${main_folder}/*/*))
 for folder in "${folders[@]}"; do
     # Extract folder name from the path
     folder_name=$(basename "${folder}")
-    mkdir ${folder}/plots/
+    mkdir -p ${folder}/plots/
     
     # Run the Python script with the folder name as an argument
     python "${python_script}" "${folder}"
