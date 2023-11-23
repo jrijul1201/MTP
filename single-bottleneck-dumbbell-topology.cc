@@ -37,8 +37,8 @@
 
 using namespace ns3;
 std::string dir = "examples/results/";
-Time stopTime = Seconds (10);
-Time tracingDuration = Seconds (5);
+Time stopTime = Seconds (200);
+Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
 uint32_t numNodes = 4;
@@ -62,8 +62,8 @@ CheckQueueSize (Ptr<QueueDisc> queue)
   uint32_t qSize = queue->GetCurrentSize ().GetValue ();
 
   // Check queue size every 1/5 of a second
-  Simulator::Schedule (Seconds (0.2), &CheckQueueSize, queue);
-  std::ofstream fPlotQueue (std::stringstream (dir + "queue-size.dat").str ().c_str (),
+  Simulator::Schedule (Seconds (0.001), &CheckQueueSize, queue);
+  std::ofstream fPlotQueue (std::stringstream (dir + "queueSize.dat").str ().c_str (),
                             std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << qSize << std::endl;
   fPlotQueue.close ();
@@ -197,7 +197,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("stopTime", "Stop time for applications / simulation time will be stopTime",
                 stopTime);
   cmd.AddValue ("recovery", "Recovery algorithm type to use (e.g., ns3::TcpPrrRecovery", recovery);
-  cmd.AddValue ("withThresh", "AQM is threshold", isThresholdAQMEnabled);
+  cmd.AddValue ("thEnabled", "AQM is threshold", isThresholdAQMEnabled);
   cmd.Parse (argc, argv);
 
   if (isThresholdAQMEnabled)
