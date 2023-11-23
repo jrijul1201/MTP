@@ -29,9 +29,10 @@ do
     done
 done
 
+bash plot-single.sh
+
 cd examples/results/
 
-bash plot-single.sh
 
 git add .
 git commit -m "single bottleneck"
