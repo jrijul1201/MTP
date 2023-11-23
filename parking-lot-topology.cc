@@ -355,8 +355,7 @@ main (int argc, char *argv[])
   for (uint32_t i = 0; i < groups - 1; i++)
     {
       p2prouters.push_back (new P2PRouter (dir + "router" + std::to_string (i) + '/', queueSize,
-                                           DataRate (bottleneckBandwidth.GetBitRate () * 0.8),
-                                           minimumLinkDelay, qdiscTypeId));
+                                           bottleneckBandwidth, minimumLinkDelay, qdiscTypeId));
     }
 
   // a b c sources and a b c destinations
