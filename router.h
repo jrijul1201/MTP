@@ -96,7 +96,6 @@ public:
 
     pointToPointRouter.SetDeviceAttribute ("DataRate", DataRateValue (linkBandwidth));
     pointToPointRouter.SetChannelAttribute ("Delay", TimeValue (linkDelay));
-    pointToPointRouter.DisableFlowControl ();
     netDevice = pointToPointRouter.Install (routers.Get (0), routers.Get (1));
     pointToPointRouter.DisableFlowControl ();
     std::string dirToSave = "mkdir -p " + dir;
