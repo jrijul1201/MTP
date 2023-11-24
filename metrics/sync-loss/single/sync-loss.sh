@@ -11,14 +11,14 @@ remove_existing_file() {
 
 # Specify the folder path
 folder_paths=(
-    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-single-newreno/results-sandwich/60-TcpNewReno-200-withoutThresh/cwndTraces"
-    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-single-newreno/results-sandwich/60-TcpNewReno-200-withThresh/cwndTraces"
-    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-single-newreno/results-sandwich/60-TcpNewReno-10-withoutThresh/cwndTraces"
-    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-single-newreno/results-sandwich/60-TcpNewReno-10-withThresh/cwndTraces"
-    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-single-newreno/results-sandwich/60-TcpCubic-200-withoutThresh/cwndTraces"
-    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-single-newreno/results-sandwich/60-TcpCubic-200-withThresh/cwndTraces"
-    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-single-newreno/results-sandwich/60-TcpCubic-10-withoutThresh/cwndTraces"
-    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-single-newreno/results-sandwich/60-TcpCubic-10-withThresh/cwndTraces"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-sandwich-single/results-sandwich/60-TcpNewReno-200-withoutThresh/cwndTraces"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-sandwich-single/results-sandwich/60-TcpNewReno-200-withThresh/cwndTraces"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-sandwich-single/results-sandwich/60-TcpNewReno-10-withoutThresh/cwndTraces"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-sandwich-single/results-sandwich/60-TcpNewReno-10-withThresh/cwndTraces"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-sandwich-single/results-sandwich/60-TcpCubic-200-withoutThresh/cwndTraces"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-sandwich-single/results-sandwich/60-TcpCubic-200-withThresh/cwndTraces"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-sandwich-single/results-sandwich/60-TcpCubic-10-withoutThresh/cwndTraces"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-sandwich-single/results-sandwich/60-TcpCubic-10-withThresh/cwndTraces"
 )
 # filename_one="loss-events-one.dat"
 filename_half="loss-events-half.dat"

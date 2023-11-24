@@ -109,7 +109,7 @@ def save_s_matrix_to_csv(s_matrix, csv_file_path):
         for row in s_matrix:
             writer.writerow(row)
 
-    print(f"S matrix saved to: {csv_file_path}")
+    # print(f"S matrix saved to: {csv_file_path}")
 
 
 def frobenius_norm(s):
@@ -138,6 +138,6 @@ csv_file_path = os.path.join(folder_path, "s_matrix" + get_csv_name() + ".csv")
 
 save_s_matrix_to_csv(S, csv_file_path)
 
-print(mode_of_calculation)
-print(f"Overall synchronisation: {overall_s}")
+# print(mode_of_calculation)
+# print(f"Overall synchronisation: {overall_s}")
 print(f"Frobenius norm: {frob_norm}")
