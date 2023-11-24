@@ -2,6 +2,8 @@ import numpy as np
 import sys
 import re
 import os
+from tqdm import tqdm
+import csv
 
 
 def replace_none_with_first_non_none(arr):
@@ -80,8 +82,21 @@ def parse_data(lines):
     return parsed_data
 
 
+def save_matrix_to_csv(matrix, csv_file_path):
+    with open(csv_file_path, mode="w", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        for row in matrix:
+            writer.writerow(row)
+
+    print(f"Matrix saved to: {csv_file_path}")
+
+
+if len(sys.argv) != 2:
+    print("Usage: python script.py input_file")
+    sys.exit(1)
+
 cwnd_traces = []
-input_file_path = input("Enter the name of the folder: ")
+input_file_path = sys.argv[1]
 
 file_name_pattern = r"n(\d+).dat"  # Assumes names like n1.dat, n2.dat, etc.
 
@@ -89,7 +104,7 @@ file_name_pattern = r"n(\d+).dat"  # Assumes names like n1.dat, n2.dat, etc.
 matching_files = get_matching_files(input_file_path, file_name_pattern)
 
 # Iterate over the matching files
-for file_path in matching_files:
+for file_path in tqdm(matching_files, desc="Processing files", unit="file"):
     # Read data from the input file
     lines = read_data_from_file(file_path)
     # Parse the data
@@ -101,7 +116,7 @@ for file_path in matching_files:
 correlation_matrix = np.zeros((len(cwnd_traces), len(cwnd_traces)))
 
 # Calculate correlation coefficient for each pair of traces
-for i in range(len(cwnd_traces)):
+for i in tqdm(range(len(cwnd_traces)), desc="Calculating Correlation", unit="trace"):
     for j in range(i + 1, len(cwnd_traces)):
         cwnd_values_i = [trace for trace in cwnd_traces[i]]
         cwnd_values_j = [trace for trace in cwnd_traces[j]]
@@ -116,5 +131,6 @@ for i in range(len(cwnd_traces)):
         ] = correlation_coefficient  # Since the matrix is symmetric
 
 # Print or use the correlation matrix as needed
-print("Correlation Matrix:")
-print(correlation_matrix)
+# print("Correlation Matrix:")
+# print(correlation_matrix)
+save_matrix_to_csv(correlation_matrix, input_file_path + "corr_mat.csv")
