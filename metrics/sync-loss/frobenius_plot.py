@@ -101,8 +101,42 @@ single_dataset = [
     # },
 ]
 
+corr_single_dataset = [
+    [
+        {
+            "label": "60-TcpNewReno-200",
+            "withoutThresh": 0.1951,
+            "withThresh": 0.0166,
+        },
+    ],
+    [
+        {
+            "label": "60-TcpNewReno-10",
+            "withoutThresh": 0.2392,
+            "withThresh": 0.019,
+        },
+    ],
+]
 
-def frob_plot(data, name, xaxis):
+corr_parking_dataset = [
+    [
+        {
+            "label": "60-TcpNewReno-200",
+            "withoutThresh": 0.1097,
+            "withThresh": 0.0373,
+        },
+    ],
+    [
+        {
+            "label": "60-TcpNewReno-10",
+            "withoutThresh": 0.0752,
+            "withThresh": 0.0249,
+        },
+    ],
+]
+
+
+def frob_plot(data, name, xaxis, yaxis):
     for entry in data:
         label = entry["label"]
         without_thresh_norm = entry["withoutThresh"]
@@ -116,9 +150,9 @@ def frob_plot(data, name, xaxis):
         )
 
     plt.xticks(rotation=25, ha="right")
-    plt.title("Synchronization Loss vs " + xaxis)
+    plt.title(yaxis + " vs " + xaxis)
     plt.xlabel(xaxis)
-    plt.ylabel("Synchronization Loss")
+    plt.ylabel(yaxis)
     # Creating custom handles for the legend
     without_thresh_patch = mpatches.Patch(
         color="skyblue", label="Without Threshold AQM"
@@ -126,17 +160,33 @@ def frob_plot(data, name, xaxis):
     with_thresh_patch = mpatches.Patch(color="pink", label="With Threshold AQM")
 
     # Adding legend with custom handles
-    plt.legend(handles=[without_thresh_patch, with_thresh_patch], loc="lower right")
+    plt.legend(handles=[without_thresh_patch, with_thresh_patch], loc="upper right")
     plt.tight_layout()
 
     plt.savefig(name + ".png")
     plt.close()
 
 
-for data in parking_dataset:
-    frob_plot(data, "parking-lot-" + data[0]["label"].split("/")[0], "Set")
+# for data in parking_dataset:
+#     frob_plot(data, "parking-lot-" + data[0]["label"].split("/")[0], "Set", "Synchronization Loss")
 
-for data in single_dataset:
+# for data in single_dataset:
+#     frob_plot(
+#         data, "single-bottleneck-" + data[0]["label"].split("/")[0], "Configuration", "Synchronization Loss"
+#     )
+
+for data in corr_parking_dataset:
     frob_plot(
-        data, "single-bottleneck-" + data[0]["label"].split("/")[0], "Configuration"
+        data,
+        "corr-parking-lot-" + data[0]["label"].split("/")[0],
+        "Configuration",
+        "Congestion Window Correlation",
+    )
+
+for data in corr_single_dataset:
+    frob_plot(
+        data,
+        "corr-single-bottleneck-" + data[0]["label"].split("/")[0],
+        "Configuration",
+        "Congestion Window Correlation",
     )
