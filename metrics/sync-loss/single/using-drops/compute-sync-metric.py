@@ -14,7 +14,7 @@ def consolidate(input_file_path):
     data_dict = defaultdict(list)
     for line in lines:
         node, timestamp = line.split()
-        node_int = int(node[1:])
+        node_int = int(node)
         data_dict[float(timestamp)].append(node_int)
 
     return data_dict
@@ -116,13 +116,6 @@ def frobenius_norm(s):
     return math.sqrt(sum(sum(x**2 for x in row) for row in s))
 
 
-def get_csv_name():
-    if "one" in mode_of_calculation:
-        return "_one"
-    else:
-        return "_half"
-
-
 input_file_path = sys.argv[1]
 folder_path = sys.argv[2]
 mode_of_calculation = sys.argv[3]
@@ -134,7 +127,7 @@ NN = compute_nn(D)
 S = compute_s(N, NN)
 overall_s = overall_synchronization(S)
 frob_norm = frobenius_norm(S)
-csv_file_path = os.path.join(folder_path, "s_matrix" + get_csv_name() + ".csv")
+csv_file_path = os.path.join(folder_path, "s_matrix.csv")
 
 save_s_matrix_to_csv(S, csv_file_path)
 
