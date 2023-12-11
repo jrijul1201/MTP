@@ -100,7 +100,9 @@ TraceLossEvents (Ptr<Packet> packet, Time now, std::string routerDir)
   packet->PrintByteTags (ss);
   std::string byteTag = ss.str ();
   uint32_t flow_id = get_flow_id (byteTag);
-  std::ofstream loss_events_file (routerDir + "/lossEvents.dat", std::ios::out | std::ios::app);
+  std::string loss_events_file_path =
+      routerDir + "/lossEvents" + std::to_string ((flow_id - 1) / (numNodesInGroup)) + ".dat";
+  std::ofstream loss_events_file (loss_events_file_path, std::ios::out | std::ios::app);
   loss_events_file << flow_id << " " << now.GetSeconds () << std::endl;
 }
 
