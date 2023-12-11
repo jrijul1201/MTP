@@ -10,6 +10,7 @@
 #include <ctime>
 #include <sstream>
 #include <sys/stat.h>
+#include <regex>
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
@@ -23,8 +24,8 @@
 using namespace ns3;
 
 std::string dir = "examples/results/";
-Time stopTime = Seconds (200);
-Time tracingDuration = Seconds (25);
+Time stopTime = Seconds (25);
+Time tracingDuration = Seconds (10);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
 uint32_t numNodes = 10;
@@ -81,11 +82,37 @@ CwndChange (std::string context, uint32_t oldCwnd, uint32_t newCwnd)
   fPlotQueue.close ();
 }
 
+uint32_t
+get_flow_id (const std::string &str)
+{
+  std::regex flow_id_regex (R"(FlowId=(\d+))");
+  std::smatch match;
+
+  if (std::regex_search (str, match, flow_id_regex))
+    return std::stoul (match[1]);
+  return -1; // Return -1 if flow ID not found
+}
+
+static void
+TraceLossEvents (Ptr<Packet> packet, Time now, std::string routerDir)
+{
+  std::stringstream ss;
+  packet->PrintByteTags (ss);
+  std::string byteTag = ss.str ();
+  uint32_t flow_id = get_flow_id (byteTag);
+  std::ofstream loss_events_file (routerDir + "/lossEvents.dat", std::ios::out | std::ios::app);
+  loss_events_file << flow_id << " " << now.GetSeconds () << std::endl;
+}
+
 // Function to calculate drops in a particular Queue
 static void
-DropAtQueue (Ptr<OutputStreamWrapper> stream, Ptr<const QueueDiscItem> item)
+DropAtQueue (Ptr<OutputStreamWrapper> stream, std::string routerDir, Ptr<const QueueDiscItem> item)
 {
-  *stream->GetStream () << Simulator::Now ().GetSeconds () << " 1" << std::endl;
+  Time now = Simulator::Now ();
+  *stream->GetStream () << now.GetSeconds () << " 1" << std::endl;
+  Ptr<Packet> packet = item->GetPacket ();
+  if (now >= tracingStartTime)
+    TraceLossEvents (packet, now, routerDir);
 }
 
 // Trace Function for cwnd
@@ -489,7 +516,7 @@ main (int argc, char *argv[])
       // Create dat to store packets dropped and marked at the router
       streamWrapper = asciiTraceHelper.CreateFileStream (p2prouter->dir + "drop.dat");
       p2prouter->qd.Get (0)->TraceConnectWithoutContext (
-          "Drop", MakeBoundCallback (&DropAtQueue, streamWrapper));
+          "Drop", MakeBoundCallback (&DropAtQueue, streamWrapper, p2prouter->dir));
     }
 
   // Install packet sink at receiver side for N nodes
