@@ -118,7 +118,6 @@ def frobenius_norm(s):
 
 input_file_path = sys.argv[1]
 folder_path = sys.argv[2]
-mode_of_calculation = sys.argv[3]
 data_dict = consolidate(input_file_path)
 T = len(data_dict)
 D = compute_d(data_dict)
