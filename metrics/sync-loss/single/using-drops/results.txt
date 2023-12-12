@@ -1,0 +1,16 @@
+Processing WithoutThresh/60-TcpCubic-10/lossEvents.dat:
+Frobenius norm: 8.454103692423834
+Processing WithoutThresh/60-TcpCubic-200/lossEvents.dat:
+Frobenius norm: 8.913489255158508
+Processing WithoutThresh/60-TcpNewReno-10/lossEvents.dat:
+Frobenius norm: 8.4058924937424
+Processing WithoutThresh/60-TcpNewReno-200/lossEvents.dat:
+Frobenius norm: 8.391237798551034
+Processing WithThresh/60-TcpCubic-10/lossEvents.dat:
+Frobenius norm: 7.981505163102372
+Processing WithThresh/60-TcpCubic-200/lossEvents.dat:
+Frobenius norm: 8.555750713243123
+Processing WithThresh/60-TcpNewReno-10/lossEvents.dat:
+Frobenius norm: 8.171925918042874
+Processing WithThresh/60-TcpNewReno-200/lossEvents.dat:
+Frobenius norm: 8.719945060204743
