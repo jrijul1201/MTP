@@ -101,6 +101,109 @@ single_dataset = [
     # },
 ]
 
+new_single_dataset = [
+    [
+        {
+            "label": "60-TcpCubic-200",
+            "withoutThresh": 8.913489255158508,
+            "withThresh": 8.555750713243123,
+        }
+    ],
+    [
+        {
+            "label": "60-TcpCubic-10",
+            "withoutThresh": 8.454103692423834,
+            "withThresh": 7.981505163102372,
+        }
+    ],
+    [
+        {
+            "label": "60-TcpNewReno-200",
+            "withoutThresh": 8.391237798551034,
+            "withThresh": 8.719945060204743,
+        }
+    ],
+    [
+        {
+            "label": "60-TcpNewReno-10",
+            "withoutThresh": 8.4058924937424,
+            "withThresh": 8.171925918042874,
+        }
+    ],
+]
+
+new_parking_dataset = [
+    [
+        {
+            "label": "60-TcpCubic-10/A",
+            "withoutThresh": 5.835610482367378,
+            "withThresh": 5.598339116841516,
+        },
+        {
+            "label": "60-TcpCubic-10/B",
+            "withoutThresh": 6.524617121270629,
+            "withThresh": 5.966852257286757,
+        },
+        {
+            "label": "60-TcpCubic-10/C",
+            "withoutThresh": 10.469185992280844,
+            "withThresh": 5.658801987695796,
+        },
+    ],
+    [
+        {
+            "label": "60-TcpCubic-200/A",
+            "withoutThresh": 5.910110231729086,
+            "withThresh": 5.686464016932932,
+        },
+        {
+            "label": "60-TcpCubic-200/B",
+            "withoutThresh": 4.7807021846884385,
+            "withThresh": 5.3584453443080395,
+        },
+        {
+            "label": "60-TcpCubic-200/C",
+            "withoutThresh": 6.024499321164452,
+            "withThresh": 6.110895445032672,
+        },
+    ],
+    [
+        {
+            "label": "60-TcpNewReno-10/A",
+            "withoutThresh": 5.93253739979783,
+            "withThresh": 5.596800512104149,
+        },
+        {
+            "label": "60-TcpNewReno-10/B",
+            "withoutThresh": 5.76204589009027,
+            "withThresh": 5.6533659702287675,
+        },
+        {
+            "label": "60-TcpNewReno-10/C",
+            "withoutThresh": 4.684786251497737,
+            "withThresh": 5.626084832360204,
+        },
+    ],
+    [
+        {
+            "label": "60-TcpNewReno-200/A",
+            "withoutThresh": 5.678259450349863,
+            "withThresh": 5.8632376426248305,
+        },
+        {
+            "label": "60-TcpNewReno-200/B",
+            "withoutThresh": 4.8125094195835345,
+            "withThresh": 6.243972629063312,
+        },
+        {
+            "label": "60-TcpNewReno-200/C",
+            "withoutThresh": 3.986086914367133,
+            "withThresh": 6.450517472823864,
+        },
+    ],
+]
+
+
 corr_single_dataset = [
     [
         {
@@ -167,26 +270,34 @@ def frob_plot(data, name, xaxis, yaxis):
     plt.close()
 
 
-# for data in parking_dataset:
-#     frob_plot(data, "parking-lot-" + data[0]["label"].split("/")[0], "Set", "Synchronization Loss")
+for data in new_parking_dataset:
+    frob_plot(
+        data,
+        "parking-lot-" + data[0]["label"].split("/")[0],
+        "Set",
+        "Synchronization Loss",
+    )
 
-# for data in single_dataset:
+for data in new_single_dataset:
+    frob_plot(
+        data,
+        "single-bottleneck-" + data[0]["label"].split("/")[0],
+        "Configuration",
+        "Synchronization Loss",
+    )
+
+# for data in corr_parking_dataset:
 #     frob_plot(
-#         data, "single-bottleneck-" + data[0]["label"].split("/")[0], "Configuration", "Synchronization Loss"
+#         data,
+#         "corr-parking-lot-" + data[0]["label"].split("/")[0],
+#         "Configuration",
+#         "Congestion Window Correlation",
 #     )
 
-for data in corr_parking_dataset:
-    frob_plot(
-        data,
-        "corr-parking-lot-" + data[0]["label"].split("/")[0],
-        "Configuration",
-        "Congestion Window Correlation",
-    )
-
-for data in corr_single_dataset:
-    frob_plot(
-        data,
-        "corr-single-bottleneck-" + data[0]["label"].split("/")[0],
-        "Configuration",
-        "Congestion Window Correlation",
-    )
+# for data in corr_single_dataset:
+#     frob_plot(
+#         data,
+#         "corr-single-bottleneck-" + data[0]["label"].split("/")[0],
+#         "Configuration",
+#         "Congestion Window Correlation",
+#     )
