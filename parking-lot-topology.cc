@@ -23,7 +23,7 @@
 
 using namespace ns3;
 
-std::string dir = "examples/results/";
+std::string dir = "examples/results/parking-lot-topology/";
 Time stopTime = Seconds (25);
 Time tracingDuration = Seconds (10);
 Time tracingStartTime = stopTime - tracingDuration;

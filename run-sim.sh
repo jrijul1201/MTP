@@ -24,16 +24,14 @@ do
                 echo "Running this config:" ${NODES[$i]} ${TCP_FLAVOUR[j]} ${RTT[k]} ${THRESH[l]}
                 ./ns3 run parking-lot-topology -- --numNodes=${NODES[$i]} --tcpVariant=${TCP_FLAVOUR[$j]} --roundTripTime=${RTT[$k]} --thEnabled=${THRESH[$l]}
                 echo "This config ran successfully:" ${NODES[$i]} ${TCP_FLAVOUR[j]} ${RTT[k]} ${THRESH[l]}
+                cd examples/results/
+                git add .
+                git commit -m "parking-lot ${NODES[$i]} ${TCP_FLAVOUR[j]} ${RTT[k]} ${THRESH[l]}"
+                git push
+                cd ../../
             done
         done
     done
 done
 
 # bash plot-parking-lot.sh
-
-cd examples/results/
-
-
-git add .
-git commit -m "parking-lot 100 100"
-git push

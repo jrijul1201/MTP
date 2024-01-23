@@ -37,7 +37,7 @@
 #include "router.h"
 
 using namespace ns3;
-std::string dir = "examples/results/";
+std::string dir = "examples/results/single-bottleneck-dumbbell-topology/";
 Time stopTime = Seconds (25);
 Time tracingDuration = Seconds (10);
 Time tracingStartTime = stopTime - tracingDuration;
@@ -239,8 +239,8 @@ main (int argc, char *argv[])
         }
     }
 
-  dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "-" +
-         (isThresholdAQMEnabled ? "withThresh" : "withoutThresh") + "/";
+  dir += (isThresholdAQMEnabled ? "WithThresh/" : "WithoutThresh/") + std::to_string (numNodes) +
+         "-" + tcpType + "-" + std::to_string (rtt) + "/";
 
   bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
   DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
