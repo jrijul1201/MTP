@@ -21,12 +21,12 @@
 
 using namespace ns3;
 
-std::string dir = "examples/results/sandwich-topology/";
+std::string dir = "examples/results/static-routing-via-virtual/";
 Time stopTime = Seconds (200);
 Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
-uint32_t numNodes = 10;
+uint32_t numNodes = 146;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
 bool isThresholdAQMEnabled = false;
@@ -38,17 +38,60 @@ std::string recovery = "ns3::TcpClassicRecovery";
 QueueSize queueSize = QueueSize ("2084p");
 uint32_t groups = 3; // Number of sources and destinations groups
 DataRate bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
-DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
+DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / 60);
 Time minimumLinkDelay = MicroSeconds (1);
 Time *accessLinkDelays;
 std::ofstream myfile;
 std::map<Ipv4Address, DestinationData *> IPtoDestinationData;
 std::vector<double> throughputPerGroup;
 uint32_t numNodesInGroup;
-uint32_t numRouters = 5;
+uint32_t numRouters = 6;
+std::vector<int> realSourcesForRouters = {60, 0, 0, 0, 0, 0};
+std::vector<int> realDestinationsForRouters = {0, 5, 32, 5, 4, 14};
+std::vector<int> virtualsForRouters = {0, 0, 0, 28, 23, 35};
+std::vector<int> srcToRouterMapping;
+std::vector<int> desToRouterMapping;
 
-vector<vector<int>> matrix = {
-    {0, 1, 0, 1, 0}, {0, 0, 1, 0, 1}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}, {0, 0, 0, 0, 0}};
+vector<vector<int>> matrix = {{0, 1, 1, 0, 0, 0}, {0, 0, 0, 1, 0, 1}, {0, 0, 0, 0, 1, 0},
+                              {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}};
+
+void
+populateRouters ()
+{
+  srcToRouterMapping.clear ();
+  desToRouterMapping.clear ();
+
+  for (int i = 0; i < numRouters; i++)
+    {
+      for (int j = 0; j < realSourcesForRouters[i]; j++)
+        {
+          srcToRouterMapping.push_back (i);
+        }
+    }
+  for (int i = 0; i < numRouters; i++)
+    {
+      for (int j = 0; j < virtualsForRouters[i]; j++)
+        {
+          srcToRouterMapping.push_back (i);
+        }
+    }
+  for (int i = 0; i < numRouters; i++)
+    {
+      for (int j = 0; j < realDestinationsForRouters[i]; j++)
+        {
+          desToRouterMapping.push_back (i);
+        }
+    }
+  for (int i = 0; i < numRouters; i++)
+    {
+      for (int j = 0; j < virtualsForRouters[i]; j++)
+        {
+          desToRouterMapping.push_back (i);
+        }
+    }
+
+  std::cout << desToRouterMapping.size ();
+}
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -361,6 +404,8 @@ main (int argc, char *argv[])
   retVal = system ((dirToSave + "/throughput/").c_str ());
   NS_ASSERT_MSG (retVal == 0, "Error in return value");
 
+  populateRouters ();
+
   // Create nodes
   vector<RouterProps *> routerProps = getRouterProps ();
 
@@ -382,15 +427,15 @@ main (int argc, char *argv[])
   pointToPointLeaf.SetDeviceAttribute ("DataRate", DataRateValue (accessLinkBandwidth));
   pointToPointLeaf.DisableFlowControl ();
 
+  accessLinkDelays = variedAccessLinkDelays (numNodes, (rtt / 4));
   for (uint32_t j = 0; j < numNodes; ++j)
     {
       // 100 - 1 - 1 divided by 4
-      accessLinkDelays = variedAccessLinkDelays (numNodes, (rtt / 4));
       pointToPointLeaf.SetChannelAttribute ("Delay", TimeValue (accessLinkDelays[j]));
-      sourceToRouter.push_back (
-          pointToPointLeaf.Install (sources.Get (j), network->getRouters (0)->routers.Get (0)));
+      sourceToRouter.push_back (pointToPointLeaf.Install (
+          sources.Get (j), network->getRouters (srcToRouterMapping[j])->routers.Get (0)));
       routerToDestination.push_back (pointToPointLeaf.Install (
-          network->getRouters (4)->routers.Get (1), destinations.Get (j)));
+          network->getRouters (desToRouterMapping[j])->routers.Get (1), destinations.Get (j)));
     }
 
   InternetStackHelper internetStack;

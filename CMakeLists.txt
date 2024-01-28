@@ -148,6 +148,18 @@ build_example(
 )
 
 build_example(
+  NAME static-routing-via-virtual
+  SOURCE_FILES static-routing-via-virtual.cc
+  LIBRARIES_TO_LINK
+    ${libpoint-to-point}
+    ${libinternet}
+    ${libapplications}
+    ${libtraffic-control}
+    ${libnetwork}
+    ${libflow-monitor}
+)
+
+build_example(
   NAME tcp-validation
   SOURCE_FILES tcp-validation.cc
   LIBRARIES_TO_LINK
