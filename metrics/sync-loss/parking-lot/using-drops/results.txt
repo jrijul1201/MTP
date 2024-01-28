@@ -1,143 +1,48 @@
-Processing WithoutThresh/60-TcpCubic-10/router0/lossEvents0.dat:
-Frobenius norm: 5.341033302633235
-
-Processing WithoutThresh/60-TcpCubic-10/router0/lossEvents1.dat:
+Processing WithoutThresh/60-TcpCubic-10/lossEvents0.dat:
+Frobenius norm: 5.835610482367378
+Processing WithoutThresh/60-TcpCubic-10/lossEvents1.dat:
 Frobenius norm: 6.524617121270629
-
-Processing WithoutThresh/60-TcpCubic-10/router0/lossEvents2.dat:
-0 loss events
-
-Processing WithoutThresh/60-TcpCubic-10/router1/lossEvents0.dat:
-Frobenius norm: 6.619025215123851
-
-Processing WithoutThresh/60-TcpCubic-10/router1/lossEvents1.dat:
-0 loss events
-
-Processing WithoutThresh/60-TcpCubic-10/router1/lossEvents2.dat:
+Processing WithoutThresh/60-TcpCubic-10/lossEvents2.dat:
 Frobenius norm: 10.469185992280844
-
-Processing WithoutThresh/60-TcpCubic-200/router0/lossEvents0.dat:
-Frobenius norm: 6.056939263067854
-
-Processing WithoutThresh/60-TcpCubic-200/router0/lossEvents1.dat:
+Processing WithoutThresh/60-TcpCubic-200/lossEvents0.dat:
+Frobenius norm: 5.910110231729086
+Processing WithoutThresh/60-TcpCubic-200/lossEvents1.dat:
 Frobenius norm: 4.7807021846884385
-
-Processing WithoutThresh/60-TcpCubic-200/router0/lossEvents2.dat:
-0 loss events
-
-Processing WithoutThresh/60-TcpCubic-200/router1/lossEvents0.dat:
-Frobenius norm: 6.010389667119536
-
-Processing WithoutThresh/60-TcpCubic-200/router1/lossEvents1.dat:
-0 loss events
-
-Processing WithoutThresh/60-TcpCubic-200/router1/lossEvents2.dat:
+Processing WithoutThresh/60-TcpCubic-200/lossEvents2.dat:
 Frobenius norm: 6.024499321164452
-
-Processing WithoutThresh/60-TcpNewReno-10/router0/lossEvents0.dat:
-Frobenius norm: 5.8154487741226335
-
-Processing WithoutThresh/60-TcpNewReno-10/router0/lossEvents1.dat:
+Processing WithoutThresh/60-TcpNewReno-10/lossEvents0.dat:
+Frobenius norm: 5.93253739979783
+Processing WithoutThresh/60-TcpNewReno-10/lossEvents1.dat:
 Frobenius norm: 5.76204589009027
-
-Processing WithoutThresh/60-TcpNewReno-10/router0/lossEvents2.dat:
-0 loss events
-
-Processing WithoutThresh/60-TcpNewReno-10/router1/lossEvents0.dat:
-Frobenius norm: 5.807083796728115
-
-Processing WithoutThresh/60-TcpNewReno-10/router1/lossEvents1.dat:
-0 loss events
-
-Processing WithoutThresh/60-TcpNewReno-10/router1/lossEvents2.dat:
+Processing WithoutThresh/60-TcpNewReno-10/lossEvents2.dat:
 Frobenius norm: 4.684786251497737
-
-Processing WithoutThresh/60-TcpNewReno-200/router0/lossEvents0.dat:
-Frobenius norm: 5.734883511361751
-
-Processing WithoutThresh/60-TcpNewReno-200/router0/lossEvents1.dat:
+Processing WithoutThresh/60-TcpNewReno-200/lossEvents0.dat:
+Frobenius norm: 5.678259450349863
+Processing WithoutThresh/60-TcpNewReno-200/lossEvents1.dat:
 Frobenius norm: 4.8125094195835345
-
-Processing WithoutThresh/60-TcpNewReno-200/router0/lossEvents2.dat:
-0 loss events
-
-Processing WithoutThresh/60-TcpNewReno-200/router1/lossEvents0.dat:
-Frobenius norm: 3.3166247903554
-
-Processing WithoutThresh/60-TcpNewReno-200/router1/lossEvents1.dat:
-0 loss events
-
-Processing WithoutThresh/60-TcpNewReno-200/router1/lossEvents2.dat:
+Processing WithoutThresh/60-TcpNewReno-200/lossEvents2.dat:
 Frobenius norm: 3.986086914367133
-
-Processing WithThresh/60-TcpCubic-10/router0/lossEvents0.dat:
-Frobenius norm: 5.563660295716667
-
-Processing WithThresh/60-TcpCubic-10/router0/lossEvents1.dat:
+Processing WithThresh/60-TcpCubic-10/lossEvents0.dat:
+Frobenius norm: 5.598339116841516
+Processing WithThresh/60-TcpCubic-10/lossEvents1.dat:
 Frobenius norm: 5.966852257286757
-
-Processing WithThresh/60-TcpCubic-10/router0/lossEvents2.dat:
-0 loss events
-
-Processing WithThresh/60-TcpCubic-10/router1/lossEvents0.dat:
-Frobenius norm: 5.7567684986295005
-
-Processing WithThresh/60-TcpCubic-10/router1/lossEvents1.dat:
-0 loss events
-
-Processing WithThresh/60-TcpCubic-10/router1/lossEvents2.dat:
+Processing WithThresh/60-TcpCubic-10/lossEvents2.dat:
 Frobenius norm: 5.658801987695796
-
-Processing WithThresh/60-TcpCubic-200/router0/lossEvents0.dat:
-Frobenius norm: 5.342412552591401
-
-Processing WithThresh/60-TcpCubic-200/router0/lossEvents1.dat:
+Processing WithThresh/60-TcpCubic-200/lossEvents0.dat:
+Frobenius norm: 5.686464016932932
+Processing WithThresh/60-TcpCubic-200/lossEvents1.dat:
 Frobenius norm: 5.3584453443080395
-
-Processing WithThresh/60-TcpCubic-200/router0/lossEvents2.dat:
-0 loss events
-
-Processing WithThresh/60-TcpCubic-200/router1/lossEvents0.dat:
-Frobenius norm: 5.662913923441569
-
-Processing WithThresh/60-TcpCubic-200/router1/lossEvents1.dat:
-0 loss events
-
-Processing WithThresh/60-TcpCubic-200/router1/lossEvents2.dat:
+Processing WithThresh/60-TcpCubic-200/lossEvents2.dat:
 Frobenius norm: 6.110895445032672
-
-Processing WithThresh/60-TcpNewReno-10/router0/lossEvents0.dat:
-Frobenius norm: 5.681967132161081
-
-Processing WithThresh/60-TcpNewReno-10/router0/lossEvents1.dat:
+Processing WithThresh/60-TcpNewReno-10/lossEvents0.dat:
+Frobenius norm: 5.596800512104149
+Processing WithThresh/60-TcpNewReno-10/lossEvents1.dat:
 Frobenius norm: 5.6533659702287675
-
-Processing WithThresh/60-TcpNewReno-10/router0/lossEvents2.dat:
-0 loss events
-
-Processing WithThresh/60-TcpNewReno-10/router1/lossEvents0.dat:
-Frobenius norm: 5.746557145015667
-
-Processing WithThresh/60-TcpNewReno-10/router1/lossEvents1.dat:
-0 loss events
-
-Processing WithThresh/60-TcpNewReno-10/router1/lossEvents2.dat:
+Processing WithThresh/60-TcpNewReno-10/lossEvents2.dat:
 Frobenius norm: 5.626084832360204
-
-Processing WithThresh/60-TcpNewReno-200/router0/lossEvents0.dat:
-Frobenius norm: 6.037681186043893
-
-Processing WithThresh/60-TcpNewReno-200/router0/lossEvents1.dat:
+Processing WithThresh/60-TcpNewReno-200/lossEvents0.dat:
+Frobenius norm: 5.8632376426248305
+Processing WithThresh/60-TcpNewReno-200/lossEvents1.dat:
 Frobenius norm: 6.243972629063312
-
-Processing WithThresh/60-TcpNewReno-200/router0/lossEvents2.dat:
-0 loss events
-
-Processing WithThresh/60-TcpNewReno-200/router1/lossEvents0.dat:
-Frobenius norm: 6.0883969875768775
-
-Processing WithThresh/60-TcpNewReno-200/router1/lossEvents1.dat:
-0 loss events
-
-Processing WithThresh/60-TcpNewReno-200/router1/lossEvents2.dat:
+Processing WithThresh/60-TcpNewReno-200/lossEvents2.dat:
 Frobenius norm: 6.450517472823864
