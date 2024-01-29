@@ -20,18 +20,19 @@ using namespace ns3;
 
 struct LinkProps
 {
-  int linkExist = 0;
+  bool linkExist = false;
   Time linkDelay;
   DataRate linkBandwidth;
   LinkProps (Time linkDelay, DataRate linkBandwidth)
   {
     this->linkDelay = linkDelay;
     this->linkBandwidth = linkBandwidth;
+    this->linkExist = true;
   }
-  LinkProps (int n)
-  {
-    this->linkExist = 0;
-  }
+  // LinkProps (int n)
+  // {
+  //   this->linkExist = 0;
+  // }
 };
 
 struct RouterProps

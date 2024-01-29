@@ -90,7 +90,11 @@ populateRouters ()
         }
     }
 
-  std::cout << desToRouterMapping.size ();
+  for (int i = 0; i < numNodes; i++)
+    {
+      // std::cout << i + 1 << "->" << srcToRouterMapping[i] + 1 << " " << desToRouterMapping[i] + 1;
+      // std::cout << "\n";
+    }
 }
 
 static uint32_t
@@ -354,6 +358,23 @@ generateMatrix (NetworkMatrix *networkMatrix)
     }
 }
 
+static void
+AllFlows (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
+{
+  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
+
+  auto count = stats.size ();
+  // aggregate rxBytes for first half flows (going towards sink):
+  for (auto itr = stats.begin (); count > 0; ++itr, --count)
+    {
+      Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
+      std::cout << "Flow " << itr->first << " (" << t.sourceAddress << " -> "
+                << t.destinationAddress << ")\n";
+    }
+
+  Simulator::Schedule (Seconds (0.001 * rtt), &AllFlows, monitor, classifier);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -526,6 +547,7 @@ main (int argc, char *argv[])
   //     Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier, p2prouter);
   //   }
   // Simulator::Schedule (tracingStartTime, &TraceThroughput, monitor, classifier);
+  // Simulator::Schedule (tracingStartTime, &AllFlows, monitor, classifier);
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
