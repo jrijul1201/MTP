@@ -30,7 +30,7 @@ uint32_t segmentSize = 1500;
 uint32_t numNodes = 194;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
-bool isThresholdAQMEnabled = false;
+bool isThresholdAQMEnabled = true;
 uint32_t stream = 1;
 std::string socketFactory = "ns3::TcpSocketFactory";
 std::string qdiscTypeId = "ns3::FifoQueueDisc";
@@ -382,18 +382,6 @@ AllFlows (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
 int
 main (int argc, char *argv[])
 {
-  if (isThresholdAQMEnabled)
-    {
-      if (tcpType == "TcpNewReno")
-        {
-          queueSize = QueueSize ("15p");
-        }
-      else
-        {
-          queueSize = QueueSize ("50p");
-        }
-    }
-
   CommandLine cmd;
   cmd.AddValue ("qdiscTypeId", "Queue disc for gateway (e.g., ns3::CoDelQueueDisc)", qdiscTypeId);
   cmd.AddValue ("segmentSize", "TCP segment size (bytes)", segmentSize);
@@ -410,6 +398,19 @@ main (int argc, char *argv[])
 
   dir += (isThresholdAQMEnabled ? "WithThresh/" : "WithoutThresh/") + std::to_string (numNodes) +
          "-" + tcpType + "-" + std::to_string (rtt) + "/";
+
+  if (isThresholdAQMEnabled)
+    {
+      if (tcpType == "TcpNewReno")
+        {
+          queueSize = QueueSize ("15p");
+        }
+      else
+        {
+          queueSize = QueueSize ("50p");
+        }
+    }
+
   Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType",
                       TypeIdValue (TypeId::LookupByName (recovery)));
   // Create directories to store dat files

@@ -39,11 +39,11 @@ done
 
 
 
-# bash plot-parking-lot.sh
+# # bash plot-parking-lot.sh
 
-cd examples/results/
+# cd examples/results/
 
 
-git add .
-git commit -m "static-routing-via-virtual for 80 nodes true and false"
-git push
+# git add .
+# git commit -m "static-routing-via-virtual for 80 nodes true and false"
+# git push
