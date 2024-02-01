@@ -47,7 +47,8 @@ DataRate bottleneckBandwidth;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
 bool isThresholdAQMEnabled = true;
-uint64_t maxBytes = 300 * 1024 * 1024;
+// uint64_t maxBytes = 300 * 1024 * 1024;
+uint64_t maxBytes = 300;
 std::vector<bool> isFinished;
 uint32_t nFinished = 0;
 
@@ -221,15 +222,16 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
 {
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
 
-  auto count = stats.size () / 2;
+  auto count = stats.size ();
 
   // rxBytes for first half flows (going towards sink):
   for (auto itr = stats.begin (); count > 0; ++itr, --count)
     {
-      // Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
-      // std::cout << "Flow " << itr->first << " (" << t.sourceAddress << " -> "
-      // << t.destinationAddress << ")\n";
-      std::cout << "Dump " << itr->second.rxBytes << "\n";
+      Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
+      std::cout << "Flow " << itr->first << " (" << t.sourceAddress << " -> "
+      << t.destinationAddress << ")\n";
+      std::cout << "Dump " <<  "T "<< itr->second.txBytes << "\n";
+      std::cout << "Dump " <<  "R "<< itr->second.rxBytes << "\n";
       if (!isFinished[itr->first - 1] && itr->second.rxBytes == maxBytes)
         {
           std::cout << itr->first << " - " << itr->second.timeLastRxPacket.GetSeconds () << "\n ";
