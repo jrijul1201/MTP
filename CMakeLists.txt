@@ -182,3 +182,15 @@ build_example(
     ${libapplications}
     ${libtraffic-control}
 )
+
+build_example(
+  NAME afct-single
+  SOURCE_FILES afct-single-bottleneck-dumbbell-topology.cc
+  LIBRARIES_TO_LINK
+    ${libpoint-to-point}
+    ${libinternet}
+    ${libapplications}
+    ${libtraffic-control}
+    ${libnetwork}
+    ${libflow-monitor}
+)
