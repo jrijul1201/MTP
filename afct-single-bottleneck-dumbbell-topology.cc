@@ -38,7 +38,7 @@
 
 using namespace ns3;
 std::string dir = "examples/results/afct/";
-Time stopTime = Seconds (100000000); // inf time
+Time stopTime = Seconds (1000); // inf time
 Time tracingDuration = Seconds (0);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
@@ -47,7 +47,7 @@ DataRate bottleneckBandwidth;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
 bool isThresholdAQMEnabled = true;
-uint64_t maxBytes = 300000000;
+uint64_t maxBytes = 300 * 1024 * 1024;
 std::vector<bool> isFinished;
 uint32_t nFinished = 0;
 
@@ -213,7 +213,7 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifi
   p2prouter->prevBytes = currBytes;
 
   // Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughputAndLU, monitor, classifier,
-                      //  p2prouter);
+  //  p2prouter);
 }
 
 static void
@@ -229,10 +229,10 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
       // Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
       // std::cout << "Flow " << itr->first << " (" << t.sourceAddress << " -> "
       // << t.destinationAddress << ")\n";
+      std::cout << "Dump " << itr->second.rxBytes << "\n";
       if (!isFinished[itr->first - 1] && itr->second.rxBytes == maxBytes)
         {
-          std::cout << itr->first << " - " << itr->second.timeLastRxPacket.GetSeconds ()
-                    << "\n ";
+          std::cout << itr->first << " - " << itr->second.timeLastRxPacket.GetSeconds () << "\n ";
           isFinished[itr->first - 1] = true;
           nFinished++;
           if (nFinished == numNodes)
