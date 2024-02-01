@@ -38,11 +38,11 @@
 
 using namespace ns3;
 std::string dir = "examples/results/afct/";
-Time stopTime = Seconds (1000); // inf time
+Time stopTime = Seconds (10000); // inf time
 Time tracingDuration = Seconds (0);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
-uint32_t numNodes = 4;
+uint32_t numNodes = 60;
 DataRate bottleneckBandwidth;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
