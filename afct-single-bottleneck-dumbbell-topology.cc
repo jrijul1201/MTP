@@ -66,7 +66,7 @@ CheckQueueSize (Ptr<QueueDisc> queue)
   uint32_t qSize = queue->GetCurrentSize ().GetValue ();
 
   // Check queue size every 1/5 of a second
-  Simulator::Schedule (Seconds (0.001), &CheckQueueSize, queue);
+  // Simulator::Schedule (Seconds (0.001), &CheckQueueSize, queue);
   std::ofstream fPlotQueue (std::stringstream (dir + "queueSize.dat").str ().c_str (),
                             std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << qSize << std::endl;
@@ -212,8 +212,8 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifi
   p2prouter->prevTime = currTime;
   p2prouter->prevBytes = currBytes;
 
-  Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughputAndLU, monitor, classifier,
-                       p2prouter);
+  // Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughputAndLU, monitor, classifier,
+                      //  p2prouter);
 }
 
 static void
@@ -386,7 +386,7 @@ main (int argc, char *argv[])
   p2prouter->installQueueDiscipline ();
 
   // Calls function to check queue size
-  Simulator::Schedule (tracingStartTime, &CheckQueueSize, p2prouter->qd.Get (0));
+  // Simulator::Schedule (tracingStartTime, &CheckQueueSize, p2prouter->qd.Get (0));
   AsciiTraceHelper asciiTraceHelper;
   Ptr<OutputStreamWrapper> streamWrapper;
 
@@ -415,7 +415,8 @@ main (int argc, char *argv[])
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
-  Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier, p2prouter);
+  // Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier, p2prouter);
+  Simulator::Schedule (Seconds (0.001), &TrackFCT, monitor, classifier);
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
