@@ -231,8 +231,8 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
       // Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
       // std::cout << "Flow " << itr->first << " (" << t.sourceAddress << " -> "
       // << t.destinationAddress << ")\n";
-      std::cout << "Dump " <<  "T "<< itr->second.txBytes << "\n";
-      std::cout << "Dump " <<  "R "<< itr->second.rxBytes << "\n";
+      // std::cout << "Dump " <<  "T "<< itr->second.txBytes << "\n";
+      // std::cout << "Dump " <<  "R "<< itr->second.rxBytes << "\n";
       if (!isFinished[itr->first - 1] && itr->second.rxBytes >= maxBytesPlusHeaders)
         {
           std::cout << itr->first << " - " << itr->second.timeLastRxPacket.GetSeconds () << "\n ";
