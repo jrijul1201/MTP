@@ -52,6 +52,7 @@ uint64_t maxBytesPlusHeaders = 310400160;
 // uint64_t maxBytes = 3001;
 std::vector<bool> isFinished;
 uint32_t nFinished = 0;
+uint32_t dropped = 0;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -238,8 +239,10 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
           std::cout << itr->first << " - " << itr->second.timeLastRxPacket.GetSeconds () << "\n ";
           isFinished[itr->first - 1] = true;
           nFinished++;
+          dropped += itr->second.txBytes - itr->second.rxBytes;
           if (nFinished == numNodes)
             {
+              std::cout << "Dropped should be = " << dropped << "\n";
               Simulator::Stop (Now ());
             }
         }
