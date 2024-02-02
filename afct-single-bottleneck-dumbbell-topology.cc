@@ -240,11 +240,11 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
           isFinished[itr->first - 1] = true;
           nFinished++;
           dropped += itr->second.txBytes - itr->second.rxBytes;
-          if (nFinished == numNodes)
-            {
-              std::cout << "Dropped should be = " << dropped << "\n";
-              // Simulator::Stop (Now ());
-            }
+          std::cout << "Dropped should be = " << dropped << "\n";
+          // if (nFinished == numNodes)
+          //   {
+          // Simulator::Stop (Now ());
+          // }
         }
     }
 
