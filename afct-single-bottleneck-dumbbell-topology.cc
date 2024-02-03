@@ -53,6 +53,7 @@ uint64_t maxBytesPlusHeaders = 310400160;
 std::vector<bool> isFinished;
 uint32_t nFinished = 0;
 uint32_t dropped = 0;
+uint32_t mx = 0;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -232,8 +233,16 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
       // Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
       // std::cout << "Flow " << itr->first << " (" << t.sourceAddress << " -> "
       // << t.destinationAddress << ")\n";
-      // std::cout << "Dump " <<  "T "<< itr->second.txBytes << "\n";
-      // std::cout << "Dump " <<  "R "<< itr->second.rxBytes << "\n";
+      // std::cout << "Dump "
+      //           << "T " << itr->second.txBytes << "\n";
+      // std::cout << "Dump "
+      //           << "R " << itr->second.rxBytes << "\n";
+
+      if (mx < itr->second.rxBytes)
+        {
+          mx = itr->second.rxBytes;
+          std::cout << mx << "\n";
+        }
       if (!isFinished[itr->first - 1] && itr->second.rxBytes >= maxBytesPlusHeaders)
         {
           std::cout << itr->first << " - " << itr->second.timeLastRxPacket.GetSeconds () << "\n ";
