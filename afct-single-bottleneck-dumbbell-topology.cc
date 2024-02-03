@@ -239,7 +239,7 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
           std::cout << itr->first << " - " << itr->second.timeLastRxPacket.GetSeconds () << "\n ";
           isFinished[itr->first - 1] = true;
           nFinished++;
-          dropped += (itr->second.txBytes - itr->second.rxByte)s;
+          dropped += (itr->second.txBytes - itr->second.rxBytes);
           if (nFinished == numNodes)
             {
               std::cout << "Dropped should be = " << dropped << "\n";
