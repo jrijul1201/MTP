@@ -38,7 +38,7 @@
 
 using namespace ns3;
 std::string dir = "examples/results/afct/";
-Time stopTime = Seconds (1500); // inf time
+Time stopTime = Seconds (10000); // inf time
 Time tracingDuration = Seconds (0);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
@@ -239,12 +239,12 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
           std::cout << itr->first << " - " << itr->second.timeLastRxPacket.GetSeconds () << "\n ";
           isFinished[itr->first - 1] = true;
           nFinished++;
-          dropped += itr->second.txBytes - itr->second.rxBytes;
-          std::cout << "Dropped should be = " << dropped << "\n";
-          // if (nFinished == numNodes)
-          //   {
-          // Simulator::Stop (Now ());
-          // }
+          dropped += (itr->second.txBytes - itr->second.rxByte)s;
+          if (nFinished == numNodes)
+            {
+              std::cout << "Dropped should be = " << dropped << "\n";
+              // Simulator::Stop (Now ());
+            }
         }
     }
 
