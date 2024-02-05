@@ -39,8 +39,8 @@
 using namespace ns3;
 std::string dir = "examples/results/afct/";
 Time stopTime = Seconds (10000); // inf time
-Time tracingDuration = Seconds (0);
-Time tracingStartTime = stopTime - tracingDuration;
+Time tracingDuration = Seconds (100);
+Time tracingStartTime = Seconds (950);
 uint32_t segmentSize = 1500;
 uint32_t numNodes = 60;
 DataRate bottleneckBandwidth;
@@ -54,7 +54,9 @@ std::vector<bool> isFinished;
 uint32_t nFinished = 0;
 uint32_t dropped = 0;
 uint32_t mx = 0;
-_Float64 afct = 0;
+_Float64 avg_afct = 0;
+_Float64 max_afct = 0;
+_Float64 min_afct = 10000;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -71,7 +73,8 @@ CheckQueueSize (Ptr<QueueDisc> queue)
   uint32_t qSize = queue->GetCurrentSize ().GetValue ();
 
   // Check queue size every 1/5 of a second
-  // Simulator::Schedule (Seconds (0.001), &CheckQueueSize, queue);
+  if (Simulator::Now () < tracingDuration + tracingStartTime)
+    Simulator::Schedule (Seconds (0.001), &CheckQueueSize, queue);
   std::ofstream fPlotQueue (std::stringstream (dir + "queueSize.dat").str ().c_str (),
                             std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << qSize << std::endl;
@@ -132,14 +135,6 @@ TraceCwnd (uint32_t node, uint32_t cwndWindow,
                    CwndTrace);
 }
 
-// Trace Function for cwnd
-// void
-// TrackFCT (PacketSinkHelper sink)
-// {
-//   std::cout << sink.GetTotalRx () << "\n";
-//   Simulator::Schedule (Seconds (0.001), &TrackFCT, sink);
-// }
-
 // Function to install BulkSend application
 void
 InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string socketFactory,
@@ -150,7 +145,8 @@ InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string
   source.SetAttribute ("MaxBytes", UintegerValue (maxBytes));
   ApplicationContainer sourceApps = source.Install (node);
   sourceApps.Start (Seconds (0.0));
-  // Simulator::Schedule (tracingStartTime, &TraceCwnd, nodeId, cwndWindow, CwndTrace);
+  if (Simulator::Now () < tracingDuration + tracingStartTime)
+    Simulator::Schedule (tracingStartTime, &TraceCwnd, nodeId, cwndWindow, CwndTrace);
   sourceApps.Stop (stopTime);
 }
 
@@ -161,7 +157,6 @@ InstallPacketSink (Ptr<Node> node, uint16_t port, std::string socketFactory)
   PacketSinkHelper sink (socketFactory, InetSocketAddress (Ipv4Address::GetAny (), port));
   ApplicationContainer sinkApps = sink.Install (node);
   sinkApps.Start (Seconds (0.0));
-  // Simulator::Schedule (Seconds (0.0), &TrackFCT, sink);
   sinkApps.Stop (stopTime);
 }
 
@@ -227,7 +222,9 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
 
   auto count = stats.size () / 2;
-  afct = 0;
+  avg_afct = 0;
+  max_afct = 0;
+  min_afct = 10000;
 
   // rxBytes for first half flows (going towards sink):
   for (auto itr = stats.begin (); count > 0; ++itr, --count)
@@ -240,7 +237,9 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
       // std::cout << "Dump "
       //           << "R " << itr->second.rxBytes << "\n";
 
-      afct += itr->second.timeLastRxPacket.GetSeconds ();
+      avg_afct += itr->second.timeLastRxPacket.GetSeconds ();
+      min_afct = std::min (min_afct, itr->second.timeLastRxPacket.GetSeconds ());
+      max_afct = std::max (max_afct, itr->second.timeLastRxPacket.GetSeconds ());
 
       if (mx < itr->second.rxBytes)
         {
@@ -256,7 +255,7 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
           if (nFinished == numNodes)
             {
               std::cout << "Dropped should be = " << dropped << "\n";
-              // Simulator::Stop (Now ());
+              // Simulator::Stop (Simulator::Now ());
             }
         }
     }
@@ -405,7 +404,7 @@ main (int argc, char *argv[])
   p2prouter->installQueueDiscipline ();
 
   // Calls function to check queue size
-  // Simulator::Schedule (tracingStartTime, &CheckQueueSize, p2prouter->qd.Get (0));
+  Simulator::Schedule (tracingStartTime, &CheckQueueSize, p2prouter->qd.Get (0));
   AsciiTraceHelper asciiTraceHelper;
   Ptr<OutputStreamWrapper> streamWrapper;
 
@@ -437,7 +436,7 @@ main (int argc, char *argv[])
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
   // Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier, p2prouter);
-  Simulator::Schedule (Seconds (0.001), &TrackFCT, monitor, classifier);
+  Simulator::Schedule (Seconds (0.1), &TrackFCT, monitor, classifier);
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
@@ -453,7 +452,9 @@ main (int argc, char *argv[])
   myfile.close ();
 
   myfile.open (dir + "/afct.dat", std::fstream::in | std::fstream::out | std::fstream::app);
-  myfile << "AFCT = " << afct / numNodes << "\n";
+  myfile << "AFCT = " << avg_afct / numNodes << "\n";
+  myfile << "Min AFCT = " << min_afct << "\n";
+  myfile << "Max AFCT = " << max_afct << "\n";
   myfile.close ();
 
   // Store configuration of the simulation in a file
