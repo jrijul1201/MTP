@@ -3,7 +3,7 @@
 # Assuming the Python script is named makePlots.py
 python_script="plot-afct.py"
 # Get the list of folders in the specified directory /home/mic/ns-allinone-3.36.1/ns-3.36.1/examples/results/afct/4-TcpNewReno-10-withoutThresh
-main_folder="/home/mic/ns-allinone-3.36.1/ns-3.36.1/examples/results/afct"
+main_folder="/home/mic/ns-allinone-3.36.1/ns-3.36.1/examples/results/afct-100"
 # folders=($(ls -d ${main_folder}/*))
 folders=($(ls -d ${main_folder}/*))
 
