@@ -54,6 +54,7 @@ std::vector<bool> isFinished;
 uint32_t nFinished = 0;
 uint32_t dropped = 0;
 uint32_t mx = 0;
+_Float64 afct = 0;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -226,6 +227,7 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
 
   auto count = stats.size () / 2;
+  afct = 0;
 
   // rxBytes for first half flows (going towards sink):
   for (auto itr = stats.begin (); count > 0; ++itr, --count)
@@ -238,10 +240,12 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
       // std::cout << "Dump "
       //           << "R " << itr->second.rxBytes << "\n";
 
+      afct += itr->second.timeLastRxPacket.GetSeconds ();
+
       if (mx < itr->second.rxBytes)
         {
           mx = itr->second.rxBytes;
-          std::cout << mx << "\n";
+          // std::cout << mx << "\n";
         }
       if (!isFinished[itr->first - 1] && itr->second.rxBytes >= maxBytesPlusHeaders)
         {
@@ -257,7 +261,7 @@ TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
         }
     }
 
-  Simulator::Schedule (Seconds (0.001), &TrackFCT, monitor, classifier);
+  Simulator::Schedule (Seconds (0.1), &TrackFCT, monitor, classifier);
 }
 
 int
@@ -439,11 +443,17 @@ main (int argc, char *argv[])
   Simulator::Run ();
 
   // Store queue stats in a file
+  // std::ofstream afctPath ();
+  // afctPath << "AFCT = " << afct / numNodes << "\n";
   std::ofstream myfile;
   myfile.open (dir + "queueStats.txt", std::fstream::in | std::fstream::out | std::fstream::app);
   myfile << std::endl;
   myfile << "Stat for Queue 1";
   myfile << p2prouter->qd.Get (0)->GetStats ();
+  myfile.close ();
+
+  myfile.open (dir + "/afct.dat", std::fstream::in | std::fstream::out | std::fstream::app);
+  myfile << "AFCT = " << afct / numNodes << "\n";
   myfile.close ();
 
   // Store configuration of the simulation in a file

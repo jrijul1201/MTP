@@ -1,12 +1,12 @@
 # NODES=(60)
 # TCP_FLAVOUR=("TcpCubic" "TcpNewReno")
-# RTT=(10 200)
+RTT=(10 200)
 THRESH=(true false)
 
-cd ../results/
+# cd ../results/
 # rm -rf *
 
-cd ../../
+# cd ../../
 
 
 # # first loop iterates over nodes
@@ -32,9 +32,10 @@ cd ../../
 # # fourth loop iterate over Thresh
 for l in {0..1}
 do
-    echo "Running this config:" ${THRESH[l]}
-    ./ns3 run static-routing-via-virtual -- --thEnabled=${THRESH[$l]}
-    echo "This config ran successfully:" ${THRESH[l]}
+    echo "Running this config:" ${RTT[l]}
+    ../../ns3 run afct-single -- --thEnabled=true --roundTripTime=${RTT[$l]} --tcpVariant=TcpNewReno
+    ../../ns3 run afct-single -- --thEnabled=false --roundTripTime=${RTT[$l]} --tcpVariant=TcpNewReno
+    echo "This config ran successfully:" ${RTT[l]}
 done
 
 
