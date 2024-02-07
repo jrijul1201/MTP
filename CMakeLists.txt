@@ -194,3 +194,15 @@ build_example(
     ${libnetwork}
     ${libflow-monitor}
 )
+
+build_example(
+  NAME afct2-single
+  SOURCE_FILES afct2-single-bottleneck-dumbbell-topology.cc
+  LIBRARIES_TO_LINK
+    ${libpoint-to-point}
+    ${libinternet}
+    ${libapplications}
+    ${libtraffic-control}
+    ${libnetwork}
+    ${libflow-monitor}
+)
