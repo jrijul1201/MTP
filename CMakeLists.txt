@@ -206,3 +206,17 @@ build_example(
     ${libnetwork}
     ${libflow-monitor}
 )
+
+build_example(
+  NAME multi-bottleneck
+  SOURCE_FILES multi-bottleneck-topology.cc
+  LIBRARIES_TO_LINK
+    ${libcore}
+    ${libnetwork}
+    ${libinternet}
+    ${libpoint-to-point}
+    ${libapplications}
+    ${libipv4-static-routing}
+    ${libipv4-list-routing}
+    ${libconfig-store}
+)

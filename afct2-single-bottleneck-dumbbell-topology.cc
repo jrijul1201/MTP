@@ -37,7 +37,7 @@
 #include "router.h"
 
 using namespace ns3;
-std::string dir = "examples/results/afct2/";
+std::string dir = "examples/results/afct2-100/";
 Time stopTime = Seconds (10000); // inf time
 Time tracingDuration = Seconds (100);
 Time tracingStartTime = Seconds (950);
@@ -262,7 +262,7 @@ main (int argc, char *argv[])
     {
       if (tcpType == "TcpNewReno")
         {
-          queueSize = QueueSize ("15p");
+          queueSize = QueueSize ("100p");
         }
       else
         {

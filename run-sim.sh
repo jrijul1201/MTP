@@ -33,8 +33,8 @@ THRESH=(true false)
 for l in {0..1}
 do
     echo "Running this config:" ${RTT[l]}
-    ../../ns3 run afct-single -- --thEnabled=true --roundTripTime=${RTT[$l]} --tcpVariant=TcpNewReno
-    ../../ns3 run afct-single -- --thEnabled=false --roundTripTime=${RTT[$l]} --tcpVariant=TcpNewReno
+    ../../ns3 run afct2-single -- --thEnabled=true --roundTripTime=${RTT[$l]} --tcpVariant=TcpLinuxReno
+    ../../ns3 run afct2-single -- --thEnabled=false --roundTripTime=${RTT[$l]} --tcpVariant=TcpLinuxReno
     echo "This config ran successfully:" ${RTT[l]}
 done
 
