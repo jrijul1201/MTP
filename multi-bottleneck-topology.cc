@@ -8,6 +8,7 @@
 #include <fstream>
 #include <string>
 #include <cassert>
+#include <vector>
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -26,6 +27,9 @@ static const uint32_t totalTxBytes = 10000000;
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
 uint8_t data[writeSize];
+_Float64 avg_afct = 0;
+_Float64 max_afct = 0;
+_Float64 min_afct = 10000;
 
 
 void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
@@ -104,6 +108,24 @@ static void plotQsizeChange5 (uint32_t oldQSize, uint32_t newQSize){
 }
 static void plotQsizeChange6 (uint32_t oldQSize, uint32_t newQSize){
     queueSize6 = newQSize;
+}
+
+void
+TrackTotalRx (Ptr<PacketSink> pktSink)
+{
+  // std::cout << pktSink->GetTotalRx () << " ";
+  if (pktSink->GetTotalRx () < totalTxBytes)
+    {
+      Simulator::Schedule (Seconds (0.001), &TrackTotalRx, pktSink);
+    }
+  else
+    {
+      Time now = Simulator::Now ();
+      avg_afct += now.GetSeconds ();
+      min_afct = std::min (min_afct, now.GetSeconds ());
+      max_afct = std::max (max_afct, now.GetSeconds ());
+      // std::cout << now.GetSeconds () << " done\n";
+    }
 }
 
 static void TraceQueueSize(){
@@ -711,7 +733,9 @@ main (int argc, char *argv[])
     ApplicationContainer apps[number_of_sources];
     for(uint32_t i = 0 ; i < number_of_sources; i++){
       apps[i] = sink.Install (nodes.Get(i+(i+1))); 
+      Ptr<PacketSink> pktSink = StaticCast<PacketSink> (apps[i].Get (0));
       apps[i].Start (Seconds (0.0));
+      Simulator::Schedule (Seconds (0.01), &TrackTotalRx, pktSink);
       apps[i].Stop (Seconds (simDuration));
     }
 
@@ -766,6 +790,12 @@ main (int argc, char *argv[])
           time = time + 1;
       }
     Simulator::Run ();
+    std::ofstream myfile;
+    myfile.open ("./afct2.dat", std::fstream::in | std::fstream::out | std::fstream::app);
+    myfile << "AFCT = " << avg_afct / number_of_nodes << "\n";
+    myfile << "Min AFCT = " << min_afct << "\n";
+    myfile << "Max AFCT = " << max_afct << "\n";
+    myfile.close ();
     Simulator::Destroy ();
     Ptr<PacketSink> sink1 ;
     for(uint32_t i =0 ; i< number_of_sources ; i ++){
