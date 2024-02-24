@@ -1,6 +1,6 @@
 # NODES=(60)
 # TCP_FLAVOUR=("TcpCubic" "TcpNewReno")
-RTT=(10 200)
+RTT=("10ms" "100ms" "200ms")
 THRESH=(true false)
 
 # cd ../results/
@@ -30,11 +30,12 @@ THRESH=(true false)
 # done
 
 # # fourth loop iterate over Thresh
-for l in {0..1}
+for l in {0..2}
 do
     echo "Running this config:" ${RTT[l]}
-    ../../ns3 run afct2-single -- --thEnabled=true --roundTripTime=${RTT[$l]} --tcpVariant=TcpLinuxReno
-    ../../ns3 run afct2-single -- --thEnabled=false --roundTripTime=${RTT[$l]} --tcpVariant=TcpLinuxReno
+    ../../ns3 run multi-bottleneck -- --thEnabled=true --roundTripTime=${RTT[$l]} --qTh=100
+    ../../ns3 run multi-bottleneck -- --thEnabled=true --roundTripTime=${RTT[$l]} --qTh=15
+    ../../ns3 run multi-bottleneck -- --thEnabled=false --roundTripTime=${RTT[$l]}
     echo "This config ran successfully:" ${RTT[l]}
 done
 
