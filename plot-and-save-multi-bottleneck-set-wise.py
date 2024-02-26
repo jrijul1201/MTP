@@ -40,9 +40,11 @@ def plot_fct_stats(set_data, stat_name, save_path=None):
     plt.title(f"{stat_name} Across Sets")
     plt.xticks(rotation=45)
     plt.legend()
+    plt.tight_layout()  # Adjust layout to prevent label cutoff
+
     if save_path:
         plt.savefig(os.path.join(save_path, f"{stat_name}_across_sets.png"))
-    plt.show()
+    # plt.show()
 
 
 def calculate_set_stats(sets, all_data):
