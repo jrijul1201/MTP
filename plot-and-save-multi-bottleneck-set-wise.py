@@ -69,7 +69,7 @@ def calculate_set_stats(sets, all_data):
 
 if __name__ == "__main__":
     folder_path = (
-        "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/multi-bottleneck"
+        "/home/mic/ns-allinone-3.36.1/ns-3.36.1/examples/results/multi-bottleneck"
     )
     save_path = folder_path
     all_data = read_all_fct_dat_files(folder_path)

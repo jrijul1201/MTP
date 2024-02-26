@@ -30,7 +30,7 @@ NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 std::string dir = "examples/results/mahima/afct";
 uint32_t qTh = 2084;
 bool thEnabled = false;
-static const uint32_t totalTxBytes = 10000000;
+static const uint64_t totalTxBytes = 524288000;
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
 uint8_t data[writeSize];
@@ -393,7 +393,7 @@ main (int argc, char *argv[])
   std::string flavour = "TcpNewReno"; //TCP variant considered
   std::string tcpModel ("ns3::" + flavour);
   int number_of_sources = 60;
-  int simDuration = 250; // In Seconds
+  int simDuration = 10000; // In Seconds
   int number_of_nodes = 12 + (number_of_sources * 2);
   int number_of_links = 15 + (number_of_sources * 2);
   int router_starting_index = number_of_sources * 2;
