@@ -1,7 +1,6 @@
 # NODES=(60)
-# TCP_FLAVOUR=("TcpCubic" "TcpNewReno")
-RTT=("10ms" "100ms" "200ms")
-THRESH=(true false)
+TCP_FLAVOUR=("TcpLinuxReno" "TcpNewReno")
+# THRESH=(true false)
 
 # cd ../results/
 # rm -rf *
@@ -32,20 +31,13 @@ THRESH=(true false)
 # # fourth loop iterate over Thresh
 for l in {0..2}
 do
-    echo "Running this config:" ${RTT[l]}
-    ../../ns3 run multi-bottleneck -- --thEnabled=true --roundTripTime=${RTT[$l]} --qTh=100
-    ../../ns3 run multi-bottleneck -- --thEnabled=true --roundTripTime=${RTT[$l]} --qTh=15
-    ../../ns3 run multi-bottleneck -- --thEnabled=false --roundTripTime=${RTT[$l]}
-    echo "This config ran successfully:" ${RTT[l]}
+    for rtt in {10..300..5}
+    do
+        echo "Running this config:" ${rtt}
+        ../../ns3 run multi-bottleneck -- --thEnabled=true --roundTripTime=${rtt}ms --qTh=100
+        ../../ns3 run multi-bottleneck -- --thEnabled=true --roundTripTime=${rtt}ms --qTh=15
+        ../../ns3 run multi-bottleneck -- --thEnabled=false --roundTripTime=${rtt}ms
+        echo "This config ran successfully:" ${rtt}
+        # echo $rtt
+    done
 done
-
-
-
-# # bash plot-parking-lot.sh
-
-# cd examples/results/
-
-
-# git add .
-# git commit -m "static-routing-via-virtual for 80 nodes true and false"
-# git push

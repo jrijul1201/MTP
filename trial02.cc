@@ -31,7 +31,7 @@ NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 std::string dir = "examples/results/mahima/afct";
 uint32_t qTh = 2084;
 bool thEnabled = false;
-static const uint64_t totalTxBytes = 14288000;
+static const uint64_t totalTxBytes = 524288000;
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
 uint8_t data[writeSize];
@@ -388,7 +388,7 @@ main (int argc, char *argv[])
     // --------------------------------------------------
     std::string flavour = "TcpNewReno";		//TCP variant considered
     std::string tcpModel ("ns3::"+flavour);
-    int simDuration = 100; // In Seconds
+    int simDuration = 10000; // In Seconds
     std::string RTT = "94ms";   		//round-trip time of each TCP flow
     int number_of_nodes = 12 + (number_of_sources * 2);
     int number_of_links = 15 + (number_of_sources * 2);
@@ -417,9 +417,8 @@ main (int argc, char *argv[])
     cmd.AddValue("flavour", "TCP Flavour", flavour);
     cmd.AddValue("RTT", "Round Trip Time", RTT);
     cmd.AddValue("R6_queue_size", "Queue Size", R6_queue_size);
-    cmd.AddValue("thEnabled", "ThEnabled", thEnabled);
     cmd.Parse (argc, argv);
-    dir += (thEnabled ? std::to_string (R6_queue_size) + "-" + RTT : "-" + RTT) + "/";
+
     NS_LOG_UNCOND("TCP Flavor : " << flavour << "\t QueueSize : " << R6_queue_size << "\tRound Trip Time: " << RTT);
 
     // --------------------------------------------------
@@ -867,6 +866,7 @@ main (int argc, char *argv[])
         }
       std::string dirToSave = "mkdir -p " + dir;
       retVal = system (dirToSave.c_str ());
+      std::string iterator;
       if(R6_queue_size >100)
         iterator = "DropTail" + RTT.substr(0,RTT.length()-2) + "RTT";
       else if(R6_queue_size == 100)
