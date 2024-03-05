@@ -29,9 +29,8 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 std::string dir = "examples/results/mahima/afct";
-uint32_t qTh = 2084;
 bool thEnabled = false;
-static const uint64_t totalTxBytes = 14288000;
+static const uint64_t totalTxBytes = 524288000;
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
 uint8_t data[writeSize];
@@ -43,7 +42,6 @@ void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void StartFlow2 (Ptr<Socket>, Ipv4Address, uint16_t);
 void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
 void printFctStats ();
-void getSet ();
 void SendStuff (Ptr<Socket> sock, Ipv4Address dstaddr, uint16_t port);
 void BindSock (Ptr<Socket> sock, Ptr<NetDevice> netdev);
 
@@ -141,7 +139,7 @@ TrackTotalRx (Ptr<PacketSink> pktSink, int index)
   // std::cout << pktSink->GetTotalRx () << " ";
   if (pktSink->GetTotalRx () < totalTxBytes)
     {
-      Simulator::Schedule (Seconds (0.001), &TrackTotalRx, pktSink, index);
+      Simulator::Schedule (Seconds (0.01), &TrackTotalRx, pktSink, index);
     }
   else
     {
@@ -388,14 +386,14 @@ main (int argc, char *argv[])
     // --------------------------------------------------
     std::string flavour = "TcpNewReno";		//TCP variant considered
     std::string tcpModel ("ns3::"+flavour);
-    int simDuration = 100; // In Seconds
+    int simDuration = 10000; // In Seconds
     std::string RTT = "94ms";   		//round-trip time of each TCP flow
     int number_of_nodes = 12 + (number_of_sources * 2);
     int number_of_links = 15 + (number_of_sources * 2);
     int router_starting_index = number_of_sources * 2;
     int pktSize = 1446;
     float queue_size = 2084;
-    float R6_queue_size = 2084 * (0.6);
+    int R6_queue_size = 2084 * (0.6);
 
     ConfigStore config;
     config.ConfigureDefaults ();
@@ -419,7 +417,7 @@ main (int argc, char *argv[])
     cmd.AddValue("R6_queue_size", "Queue Size", R6_queue_size);
     cmd.AddValue("thEnabled", "ThEnabled", thEnabled);
     cmd.Parse (argc, argv);
-    dir += (thEnabled ? std::to_string (R6_queue_size) + "-" + RTT : "-" + RTT) + "/";
+    dir += (thEnabled ? std::to_string (R6_queue_size) + "-" + RTT : "-" + RTT) + "/" + flavour + "/";
     NS_LOG_UNCOND("TCP Flavor : " << flavour << "\t QueueSize : " << R6_queue_size << "\tRound Trip Time: " << RTT);
 
     // --------------------------------------------------
@@ -827,8 +825,10 @@ main (int argc, char *argv[])
     PacketSinkHelper sink ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), dstport));
     ApplicationContainer apps[number_of_sources];
     for(uint32_t i = 0 ; i < number_of_sources; i++){
-      apps[i] = sink.Install (nodes.Get(i+(i+1))); 
+      apps[i] = sink.Install (nodes.Get(i+(i+1)));  
+      Ptr<PacketSink> pktSink = StaticCast<PacketSink> (apps[i].Get (0));
       apps[i].Start (Seconds (0.0));
+      Simulator::Schedule (Seconds (0.01), &TrackTotalRx, pktSink, i);
       apps[i].Stop (Seconds (simDuration));
     }
 
@@ -868,11 +868,10 @@ main (int argc, char *argv[])
       std::string dirToSave = "mkdir -p " + dir;
       retVal = system (dirToSave.c_str ());
       if(R6_queue_size >100)
-        iterator = "DropTail" + RTT.substr(0,RTT.length()-2) + "RTT";
-      else if(R6_queue_size == 100)
-        iterator = "Threshold100" + RTT + "RTT";
-      else if (R6_queue_size == 15)
-        iterator = "Threshold15" + RTT + "RTT";
+        iterator = "DropTail-"+ std::to_string(R6_queue_size)+ "-" + RTT.substr(0,RTT.length()-2) + "-RTT";
+      else
+        iterator = "Threshold-"+ std::to_string(R6_queue_size)+ "-" + RTT.substr(0,RTT.length()-2) + "-RTT";
+
     
       // Configuring file stream to write the Qsize
       AsciiTraceHelper ascii_qsize;

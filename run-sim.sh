@@ -29,15 +29,13 @@ TCP_FLAVOUR=("TcpLinuxReno" "TcpNewReno")
 # done
 
 # # fourth loop iterate over Thresh
-for l in {0..2}
-do
+# for l in {0..1}
+# do
     for rtt in {10..300..5}
     do
-        echo "Running this config:" ${rtt}
-        ../../ns3 run multi-bottleneck -- --thEnabled=true --roundTripTime=${rtt}ms --qTh=100
-        ../../ns3 run multi-bottleneck -- --thEnabled=true --roundTripTime=${rtt}ms --qTh=15
-        ../../ns3 run multi-bottleneck -- --thEnabled=false --roundTripTime=${rtt}ms
-        echo "This config ran successfully:" ${rtt}
-        # echo $rtt
+        ../../ns3 run multi-bottleneck -- --thEnabled=true --R6_queue_size=100 --RTT=${rtt}ms --flavour=${TCP_FLAVOUR[0]} &
+        ../../ns3 run multi-bottleneck -- --thEnabled=true --R6_queue_size=15 --RTT=${rtt}ms --flavour=${TCP_FLAVOUR[0]}&
+        ../../ns3 run multi-bottleneck -- --RTT=${rtt}ms --flavour=${TCP_FLAVOUR[0]} &
+        wait
     done
-done
+# done
