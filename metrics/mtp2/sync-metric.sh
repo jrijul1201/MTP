@@ -8,7 +8,7 @@ script="sync-metric.py"
 process_script="process-for-tikz.py"
 
 # Output file name
-output_file_name="sync-matric.txt"
+output_file_name="sync-metric.txt"
 
 # Get a list of child folders inside the parent folder
 child_folders=("$parent_folder"/*)
