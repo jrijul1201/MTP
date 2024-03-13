@@ -5,6 +5,7 @@ parent_folder="/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results
 
 # Path to the overall-corr.py script
 script="overall-corr.py"
+process_script="process-for-tikz.py"
 
 # Output file name
 output_file_name="correlation.txt"
@@ -33,6 +34,7 @@ for folder_path in "${child_folders[@]}"; do
             fi
         done
         
+        python "$process_script" "$output_file"
         echo "Processing $folder_path done"
     fi
 done
