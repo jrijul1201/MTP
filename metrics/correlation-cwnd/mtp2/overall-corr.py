@@ -28,7 +28,7 @@ overall_correlation = correlation_coefficients.mean()
 try:
     with open(output_file_path, "a") as output_file:
         output_file.write(input_file_path + "\t" + str(overall_correlation) + "\n")
-    print("Overall correlation appended to output file.")
+    # print("Overall correlation appended to output file.")
 except FileNotFoundError:
     print("Output file not found.")
     sys.exit(1)

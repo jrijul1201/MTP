@@ -7,13 +7,7 @@ parent_folder="/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results
 script="overall-corr.py"
 
 # Output file name
-output_file_name="cwnd-corr.txt"
-
-# Delete old output file if it exists
-rm -f "$parent_folder/$output_file_name"
-
-# Create the output file
-touch "$parent_folder/$output_file_name"
+output_file_name="correlation.txt"
 
 # Get a list of child folders inside the parent folder
 child_folders=("$parent_folder"/*)
@@ -24,11 +18,18 @@ for folder_path in "${child_folders[@]}"; do
     if [[ -d "$folder_path" ]]; then
         echo "Processing $folder_path"
         
+        # Output file name with folder name appended
+        folder_name=$(basename "$folder_path")
+        output_file="$folder_path/$folder_name-$output_file_name"
+        
+        rm -f $output_file
+        touch -f $output_file
+        
         # Run the script for files containing "cwnd" in their names
         for file in "$folder_path"/*cwnd*; do
             if [[ -f "$file" ]]; then
                 echo "Running script for $file"
-                python "$script" "$file" "$parent_folder/$output_file_name"
+                python "$script" "$file" "$output_file"
             fi
         done
         
