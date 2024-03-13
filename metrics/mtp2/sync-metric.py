@@ -17,25 +17,25 @@ except FileNotFoundError:
     print("Input file not found.")
     sys.exit(1)
 
-# Compute correlation matrix
-correlation_matrix = df.corr()
-
-# Extract correlation coefficients
-correlation_coefficients = correlation_matrix.values
-
-# Compute overall correlation
-overall_correlation = correlation_coefficients.mean()
-
 # Extract file name
 file_name = os.path.basename(input_file_path)
 file_name = file_name.split(folder_name)[1]
 file_name = file_name.replace("RTTcwnd.txt", "")
 file_name = file_name.replace("ms", "")
 
+# Calculate standard deviation for each column (node)
+sum_sigma_x_i = sum(df.std().values)
+
+x_tau = df.sum(axis=1)
+
+sigma_x_tau_squared = x_tau.var()
+
+phi = sigma_x_tau_squared / (sum_sigma_x_i) ^ 2
+
 # Append overall correlation to output file
 try:
     with open(output_file_path, "a") as output_file:
-        output_file.write(file_name + "\t" + str(overall_correlation) + "\n")
+        output_file.write(file_name + "\t" + str(phi) + "\n")
     # print("Overall correlation appended to output file.")
 except FileNotFoundError:
     print("Output file not found.")
