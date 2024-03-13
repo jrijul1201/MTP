@@ -29,7 +29,7 @@ for folder_path in "${child_folders[@]}"; do
         for file in "$folder_path"/*cwnd*; do
             if [[ -f "$file" ]]; then
                 echo "Running script for $file"
-                python "$script" "$file" "$output_file"
+                python "$script" "$file" "$output_file" "$folder_name"
             fi
         done
         
