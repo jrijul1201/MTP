@@ -30,7 +30,7 @@ x_tau = df.sum(axis=1)
 
 sigma_x_tau_squared = x_tau.var()
 
-phi = sigma_x_tau_squared / (sum_sigma_x_i**2)  # Corrected exponentiation operator
+phi = sigma_x_tau_squared / (sum_sigma_x_i**2)
 
 # Append overall correlation to output file
 try:

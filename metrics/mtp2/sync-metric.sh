@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parent folder path
-parent_folder="/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-FinalResult"
+parent_folder="/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/tcplinuxreno-results"
 
 # Path to the sync-metric.py script
 script="sync-metric.py"
