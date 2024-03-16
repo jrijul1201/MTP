@@ -385,7 +385,6 @@ main (int argc, char *argv[])
     //        Variable Declaration & Configurations
     // --------------------------------------------------
     std::string flavour = "TcpNewReno";		//TCP variant considered
-    std::string tcpModel ("ns3::"+flavour);
     int simDuration = 10000; // In Seconds
     std::string RTT = "94ms";   		//round-trip time of each TCP flow
     int number_of_nodes = 12 + (number_of_sources * 2);
@@ -399,10 +398,6 @@ main (int argc, char *argv[])
     config.ConfigureDefaults ();
     config.ConfigureAttributes ();
 
-    Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue(tcpModel));
-    Config::SetDefault("ns3::TcpSocket::SegmentSize", UintegerValue (pktSize));
-    Config::SetDefault("ns3::TcpSocket::InitialCwnd", UintegerValue (1));
-    Config::SetDefault("ns3::TcpSocketBase::MaxWindowSize", UintegerValue (20*1000));
 
     
     /**
@@ -417,9 +412,15 @@ main (int argc, char *argv[])
     cmd.AddValue("R6_queue_size", "Queue Size", R6_queue_size);
     cmd.AddValue("thEnabled", "ThEnabled", thEnabled);
     cmd.Parse (argc, argv);
+    std::string tcpModel ("ns3::"+flavour);
+
     dir += (thEnabled ? std::to_string (R6_queue_size) + "-" + RTT : "-" + RTT) + "/" + flavour + "/";
     NS_LOG_UNCOND("TCP Flavor : " << flavour << "\t QueueSize : " << R6_queue_size << "\tRound Trip Time: " << RTT);
 
+    Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue(tcpModel));
+    Config::SetDefault("ns3::TcpSocket::SegmentSize", UintegerValue (pktSize));
+    Config::SetDefault("ns3::TcpSocket::InitialCwnd", UintegerValue (1));
+    Config::SetDefault("ns3::TcpSocketBase::MaxWindowSize", UintegerValue (20*1000));
     // --------------------------------------------------
     //            Node Initilisation
     // --------------------------------------------------
