@@ -37,7 +37,7 @@
 #include "router.h"
 
 using namespace ns3;
-std::string dir = "examples/results/afct2-100/";
+std::string dir = "examples/results/ppt-afct/";
 Time stopTime = Seconds (10000); // inf time
 Time tracingDuration = Seconds (100);
 Time tracingStartTime = Seconds (950);

@@ -184,8 +184,8 @@ build_example(
 )
 
 build_example(
-  NAME afct-single
-  SOURCE_FILES afct-single-bottleneck-dumbbell-topology.cc
+  NAME afct-old-single
+  SOURCE_FILES afct-old-single-bottleneck-dumbbell-topology.cc
   LIBRARIES_TO_LINK
     ${libpoint-to-point}
     ${libinternet}
@@ -196,8 +196,8 @@ build_example(
 )
 
 build_example(
-  NAME afct2-single
-  SOURCE_FILES afct2-single-bottleneck-dumbbell-topology.cc
+  NAME afct-single
+  SOURCE_FILES afct-single-bottleneck-dumbbell-topology.cc
   LIBRARIES_TO_LINK
     ${libpoint-to-point}
     ${libinternet}
