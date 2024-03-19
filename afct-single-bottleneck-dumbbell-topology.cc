@@ -39,8 +39,6 @@
 using namespace ns3;
 std::string dir = "examples/results/ppt-afct/";
 Time stopTime = Seconds (10000); // inf time
-Time tracingDuration = Seconds (100);
-Time tracingStartTime = Seconds (950);
 uint32_t segmentSize = 1500;
 uint32_t numNodes = 60;
 DataRate bottleneckBandwidth;
@@ -67,8 +65,8 @@ CheckQueueSize (Ptr<QueueDisc> queue)
   uint32_t qSize = queue->GetCurrentSize ().GetValue ();
 
   // Check queue size every 1/5 of a second
-  if (Simulator::Now () < tracingDuration + tracingStartTime)
-    Simulator::Schedule (Seconds (0.001), &CheckQueueSize, queue);
+  // if (Simulator::Now () < tracingDuration + tracingStartTime)
+    // Simulator::Schedule (Seconds (0.001), &CheckQueueSize, queue);
   std::ofstream fPlotQueue (std::stringstream (dir + "queueSize.dat").str ().c_str (),
                             std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << qSize << std::endl;
@@ -115,8 +113,8 @@ DropAtQueue (Ptr<OutputStreamWrapper> stream, Ptr<const QueueDiscItem> item)
   Time now = Simulator::Now ();
   *stream->GetStream () << now.GetSeconds () << " 1" << std::endl;
   Ptr<Packet> packet = item->GetPacket ();
-  if (now >= tracingStartTime)
-    TraceLossEvents (packet, now);
+  // if (now >= tracingStartTime)
+  //   TraceLossEvents (packet, now);
 }
 
 // Trace Function for cwnd
@@ -139,8 +137,8 @@ InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string
   source.SetAttribute ("MaxBytes", UintegerValue (maxBytes));
   ApplicationContainer sourceApps = source.Install (node);
   sourceApps.Start (Seconds (0.0));
-  if (Simulator::Now () < tracingDuration + tracingStartTime)
-    Simulator::Schedule (tracingStartTime, &TraceCwnd, nodeId, cwndWindow, CwndTrace);
+  // if (Simulator::Now () < tracingDuration + tracingStartTime)
+  //   Simulator::Schedule (tracingStartTime, &TraceCwnd, nodeId, cwndWindow, CwndTrace);
   sourceApps.Stop (stopTime);
 }
 
@@ -158,7 +156,7 @@ TrackTotalRx (Ptr<PacketSink> pktSink)
       avg_afct += now.GetSeconds ();
       min_afct = std::min (min_afct, now.GetSeconds ());
       max_afct = std::max (max_afct, now.GetSeconds ());
-      // std::cout << now.GetSeconds () << " done\n";
+      std::cout << now.GetSeconds () << " done\n";
     }
 }
 
@@ -370,7 +368,7 @@ main (int argc, char *argv[])
   p2prouter->installQueueDiscipline ();
 
   // Calls function to check queue size
-  Simulator::Schedule (tracingStartTime, &CheckQueueSize, p2prouter->qd.Get (0));
+  // Simulator::Schedule (tracingStartTime, &CheckQueueSize, p2prouter->qd.Get (0));
   AsciiTraceHelper asciiTraceHelper;
   Ptr<OutputStreamWrapper> streamWrapper;
 
