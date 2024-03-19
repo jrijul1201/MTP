@@ -384,7 +384,8 @@ main (int argc, char *argv[])
     // --------------------------------------------------
     //        Variable Declaration & Configurations
     // --------------------------------------------------
-    std::string flavour = "TcpNewReno";		//TCP variant considered
+    std::string flavour = "TcpCubic";		//TCP variant considered
+    std::string tcpType = flavour;
     int simDuration = 10000; // In Seconds
     std::string RTT = "94ms";   		//round-trip time of each TCP flow
     int number_of_nodes = 12 + (number_of_sources * 2);
@@ -417,7 +418,7 @@ main (int argc, char *argv[])
     dir += (thEnabled ? std::to_string (R6_queue_size) + "-" + RTT : "-" + RTT) + "/" + flavour + "/";
     NS_LOG_UNCOND("TCP Flavor : " << flavour << "\t QueueSize : " << R6_queue_size << "\tRound Trip Time: " << RTT);
 
-    Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue(tcpModel));
+    Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue ("ns3::" + tcpType));
     Config::SetDefault("ns3::TcpSocket::SegmentSize", UintegerValue (pktSize));
     Config::SetDefault("ns3::TcpSocket::InitialCwnd", UintegerValue (1));
     Config::SetDefault("ns3::TcpSocketBase::MaxWindowSize", UintegerValue (20*1000));
