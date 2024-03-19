@@ -220,3 +220,14 @@ build_example(
     ${libipv4-list-routing}
     ${libconfig-store}
 )
+build_example(
+  NAME afct-parking
+  SOURCE_FILES afct-parking-lot-topology.cc
+  LIBRARIES_TO_LINK
+    ${libpoint-to-point}
+    ${libinternet}
+    ${libapplications}
+    ${libtraffic-control}
+    ${libnetwork}
+    ${libflow-monitor}
+)

@@ -37,7 +37,7 @@
 #include "router.h"
 
 using namespace ns3;
-std::string dir = "examples/results/ppt-afct/";
+std::string dir = "examples/results/ppt-afct-single/";
 Time stopTime = Seconds (10000); // inf time
 uint32_t segmentSize = 1500;
 uint32_t numNodes = 60;
@@ -66,7 +66,7 @@ CheckQueueSize (Ptr<QueueDisc> queue)
 
   // Check queue size every 1/5 of a second
   // if (Simulator::Now () < tracingDuration + tracingStartTime)
-    // Simulator::Schedule (Seconds (0.001), &CheckQueueSize, queue);
+  // Simulator::Schedule (Seconds (0.001), &CheckQueueSize, queue);
   std::ofstream fPlotQueue (std::stringstream (dir + "queueSize.dat").str ().c_str (),
                             std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << qSize << std::endl;
