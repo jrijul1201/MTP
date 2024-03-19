@@ -30,7 +30,7 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 std::string dir = "examples/results/mahima/tcpflavour";
 bool thEnabled = false;
-static const uint64_t totalTxBytes = 524288000;
+static const uint64_t totalTxBytes = 5242;
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
 uint8_t data[writeSize];
