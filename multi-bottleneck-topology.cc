@@ -551,7 +551,7 @@ main (int argc, char *argv[])
   // --------------------------------------------------
   //        Variable Declaration & Configurations
   // --------------------------------------------------
-  std::string flavour = "TcpNewReno"; //TCP variant considered
+  std::string flavour = "TcpBBR"; //TCP variant considered
   std::string tcpType = flavour;
   int simDuration = 10000; // In Seconds
   std::string RTT = "94ms"; //round-trip time of each TCP flow
