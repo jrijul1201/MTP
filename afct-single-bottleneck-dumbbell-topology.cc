@@ -48,11 +48,6 @@ uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
 bool isThresholdAQMEnabled = true;
 uint64_t maxBytes = 300 * 1e6;
-// uint64_t maxBytes = 3001;
-std::vector<bool> isFinished;
-uint32_t nFinished = 0;
-uint32_t dropped = 0;
-uint32_t mx = 0;
 _Float64 avg_afct = 0;
 _Float64 max_afct = 0;
 _Float64 min_afct = 10000;
@@ -262,7 +257,7 @@ main (int argc, char *argv[])
     {
       if (tcpType == "TcpNewReno")
         {
-          queueSize = QueueSize ("100p");
+          queueSize = QueueSize ("15p");
         }
       else
         {
@@ -273,7 +268,6 @@ main (int argc, char *argv[])
   dir += std::to_string (numNodes) + "-" + tcpType + "-" + std::to_string (rtt) + "-" +
          (isThresholdAQMEnabled ? "withThresh" : "withoutThresh") + "/";
 
-  isFinished.assign (numNodes, false);
   bottleneckBandwidth = DataRate ("100Mbps"); // 100Mbps for actual sims
   DataRate accessLinkBandwidth = DataRate ((1.2 * bottleneckBandwidth.GetBitRate ()) / numNodes);
   // 100 - 1 - 1 divided by 4
