@@ -88,7 +88,7 @@ single_dataset = [
             "withoutThresh": 7.920788793225003,
             "withThresh": 7.817058421198173,
         },
-    ]
+    ],
     # {
     #     "label": "60-TcpCubic-200",
     #     "withoutThresh": 2.0,
@@ -221,6 +221,23 @@ corr_single_dataset = [
     ],
 ]
 
+afct_single_dataset = [
+    [
+        {
+            "label": "60-TcpNewReno-200",
+            "withoutThresh": 1521.2,
+            "withThresh": 1551.85,
+        },
+    ],
+    [
+        {
+            "label": "60-TcpNewReno-10",
+            "withoutThresh": 1506.17,
+            "withThresh": 1525.67,
+        },
+    ],
+]
+
 corr_parking_dataset = [
     [
         {
@@ -263,28 +280,28 @@ def frob_plot(data, name, xaxis, yaxis):
     with_thresh_patch = mpatches.Patch(color="pink", label="With Threshold AQM")
 
     # Adding legend with custom handles
-    plt.legend(handles=[without_thresh_patch, with_thresh_patch], loc="upper right")
+    plt.legend(handles=[without_thresh_patch, with_thresh_patch], loc="lower right")
     plt.tight_layout()
 
     plt.savefig(name + ".png")
     plt.close()
 
 
-for data in new_parking_dataset:
-    frob_plot(
-        data,
-        "parking-lot-" + data[0]["label"].split("/")[0],
-        "Set",
-        "Synchronization Loss",
-    )
+# for data in new_parking_dataset:
+#     frob_plot(
+#         data,
+#         "parking-lot-" + data[0]["label"].split("/")[0],
+#         "Set",
+#         "Synchronization Loss",
+#     )
 
-for data in new_single_dataset:
-    frob_plot(
-        data,
-        "single-bottleneck-" + data[0]["label"].split("/")[0],
-        "Configuration",
-        "Synchronization Loss",
-    )
+# for data in new_single_dataset:
+#     frob_plot(
+#         data,
+#         "single-bottleneck-" + data[0]["label"].split("/")[0],
+#         "Configuration",
+#         "Synchronization Loss",
+#     )
 
 # for data in corr_parking_dataset:
 #     frob_plot(
@@ -294,10 +311,10 @@ for data in new_single_dataset:
 #         "Congestion Window Correlation",
 #     )
 
-# for data in corr_single_dataset:
-#     frob_plot(
-#         data,
-#         "corr-single-bottleneck-" + data[0]["label"].split("/")[0],
-#         "Configuration",
-#         "Congestion Window Correlation",
-#     )
+for data in afct_single_dataset:
+    frob_plot(
+        data,
+        "afct-single-bottleneck-" + data[0]["label"].split("/")[0],
+        "Configuration",
+        "Average Flow Completion Time (ms)",
+    )
