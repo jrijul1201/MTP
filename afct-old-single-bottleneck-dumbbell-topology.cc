@@ -37,7 +37,7 @@
 #include "router.h"
 
 using namespace ns3;
-std::string dir = "examples/results/afct2-100/";
+std::string dir = "examples/results/afct-100/";
 Time stopTime = Seconds (10000); // inf time
 Time tracingDuration = Seconds (100);
 Time tracingStartTime = Seconds (950);
@@ -48,6 +48,7 @@ uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
 bool isThresholdAQMEnabled = true;
 uint64_t maxBytes = 300 * 1e6;
+uint64_t maxBytesPlusHeaders = 310400160;
 // uint64_t maxBytes = 3001;
 std::vector<bool> isFinished;
 uint32_t nFinished = 0;
@@ -149,33 +150,13 @@ InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string
   sourceApps.Stop (stopTime);
 }
 
-void
-TrackTotalRx (Ptr<PacketSink> pktSink)
-{
-  // std::cout << pktSink->GetTotalRx () << " ";
-  if (pktSink->GetTotalRx () < maxBytes)
-    {
-      Simulator::Schedule (Seconds (0.001), &TrackTotalRx, pktSink);
-    }
-  else
-    {
-      Time now = Simulator::Now ();
-      avg_afct += now.GetSeconds ();
-      min_afct = std::min (min_afct, now.GetSeconds ());
-      max_afct = std::max (max_afct, now.GetSeconds ());
-      // std::cout << now.GetSeconds () << " done\n";
-    }
-}
-
 // Function to install sink application
 void
 InstallPacketSink (Ptr<Node> node, uint16_t port, std::string socketFactory)
 {
   PacketSinkHelper sink (socketFactory, InetSocketAddress (Ipv4Address::GetAny (), port));
   ApplicationContainer sinkApps = sink.Install (node);
-  Ptr<PacketSink> pktSink = StaticCast<PacketSink> (sinkApps.Get (0));
   sinkApps.Start (Seconds (0.0));
-  Simulator::Schedule (Seconds (0.001), &TrackTotalRx, pktSink);
   sinkApps.Stop (stopTime);
 }
 
@@ -233,6 +214,53 @@ TraceThroughputAndLU (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifi
 
   // Simulator::Schedule (Seconds (0.001 * rtt), &TraceThroughputAndLU, monitor, classifier,
   //  p2prouter);
+}
+
+static void
+TrackFCT (Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier)
+{
+  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
+
+  auto count = stats.size () / 2;
+  avg_afct = 0;
+  max_afct = 0;
+  min_afct = 10000;
+
+  // rxBytes for first half flows (going towards sink):
+  for (auto itr = stats.begin (); count > 0; ++itr, --count)
+    {
+      // Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (itr->first);
+      // std::cout << "Flow " << itr->first << " (" << t.sourceAddress << " -> "
+      // << t.destinationAddress << ")\n";
+      // std::cout << "Dump "
+      //           << "T " << itr->second.txBytes << "\n";
+      // std::cout << "Dump "
+      //           << "R " << itr->second.rxBytes << "\n";
+
+      avg_afct += itr->second.timeLastRxPacket.GetSeconds ();
+      min_afct = std::min (min_afct, itr->second.timeLastRxPacket.GetSeconds ());
+      max_afct = std::max (max_afct, itr->second.timeLastRxPacket.GetSeconds ());
+
+      if (mx < itr->second.rxBytes)
+        {
+          mx = itr->second.rxBytes;
+          // std::cout << mx << "\n";
+        }
+      if (!isFinished[itr->first - 1] && itr->second.rxBytes >= maxBytesPlusHeaders)
+        {
+          std::cout << itr->first << " - " << itr->second.timeLastRxPacket.GetSeconds () << "\n ";
+          isFinished[itr->first - 1] = true;
+          nFinished++;
+          dropped += (itr->second.txBytes - itr->second.rxBytes);
+          if (nFinished == numNodes)
+            {
+              std::cout << "Dropped should be = " << dropped << "\n";
+              // Simulator::Stop (Simulator::Now ());
+            }
+        }
+    }
+
+  Simulator::Schedule (Seconds (0.1), &TrackFCT, monitor, classifier);
 }
 
 int
@@ -408,6 +436,7 @@ main (int argc, char *argv[])
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
   // Simulator::Schedule (tracingStartTime, &TraceThroughputAndLU, monitor, classifier, p2prouter);
+  Simulator::Schedule (Seconds (0.1), &TrackFCT, monitor, classifier);
 
   Simulator::Stop (stopTime);
   Simulator::Run ();
@@ -422,7 +451,7 @@ main (int argc, char *argv[])
   myfile << p2prouter->qd.Get (0)->GetStats ();
   myfile.close ();
 
-  myfile.open (dir + "/afct2.dat", std::fstream::in | std::fstream::out | std::fstream::app);
+  myfile.open (dir + "/afct.dat", std::fstream::in | std::fstream::out | std::fstream::app);
   myfile << "AFCT = " << avg_afct / numNodes << "\n";
   myfile << "Min AFCT = " << min_afct << "\n";
   myfile << "Max AFCT = " << max_afct << "\n";
