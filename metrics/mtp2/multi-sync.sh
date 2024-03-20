@@ -4,7 +4,7 @@
 parent_folder="/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/tcplinuxreno-results"
 
 # Path to the sync-metric.py script
-script="sync-metric.py"
+script="multi-sync.py"
 process_script="process-for-tikz.py"
 
 # Output file name
