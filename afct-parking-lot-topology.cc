@@ -23,7 +23,7 @@
 
 using namespace ns3;
 
-std::string dir = "examples/results/ppt-afct-parking/";
+std::string dir = "examples/results/ppt-afct-parking-set-wise/";
 Time stopTime = Seconds (10000); // inf time
 uint32_t segmentSize = 1500;
 uint32_t numNodes = 60;
@@ -46,9 +46,23 @@ std::map<Ipv4Address, DestinationData *> IPtoDestinationData;
 std::vector<double> throughputPerGroup;
 uint32_t numNodesInGroup;
 uint64_t maxBytes = 300 * 1e6;
-_Float64 avg_afct = 0;
-_Float64 max_afct = 0;
-_Float64 min_afct = 10000;
+
+std::map<int, _Float64> fctMap;
+
+void
+printFctStats ()
+{
+  std::ofstream myfile;
+  myfile.open (dir + "fct.dat", std::fstream::in | std::fstream::out | std::fstream::app);
+  myfile << "Flow\t FCT \n";
+  for (auto x : fctMap)
+    {
+      int index = x.first;
+      _Float64 fct = x.second;
+      myfile << index << "\t" << fct << "\n";
+    }
+  myfile.close ();
+}
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
@@ -146,32 +160,29 @@ InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, std::string
 }
 
 void
-TrackTotalRx (Ptr<PacketSink> pktSink)
+TrackTotalRx (Ptr<PacketSink> pktSink, int index)
 {
   // std::cout << pktSink->GetTotalRx () << " ";
   if (pktSink->GetTotalRx () < maxBytes)
     {
-      Simulator::Schedule (Seconds (0.001), &TrackTotalRx, pktSink);
+      Simulator::Schedule (Seconds (0.01), &TrackTotalRx, pktSink, index);
     }
   else
     {
       Time now = Simulator::Now ();
-      avg_afct += now.GetSeconds ();
-      min_afct = std::min (min_afct, now.GetSeconds ());
-      max_afct = std::max (max_afct, now.GetSeconds ());
-      std::cout << now.GetSeconds () << " done\n";
+      fctMap[index] = now.GetSeconds ();
+      // std::cout << now.GetSeconds () << " done\n";
     }
 }
-
 // Function to install sink application
 void
-InstallPacketSink (Ptr<Node> node, uint16_t port, std::string socketFactory)
+InstallPacketSink (Ptr<Node> node, uint16_t port, std::string socketFactory, uint16_t i)
 {
   PacketSinkHelper sink (socketFactory, InetSocketAddress (Ipv4Address::GetAny (), port));
   ApplicationContainer sinkApps = sink.Install (node);
   Ptr<PacketSink> pktSink = StaticCast<PacketSink> (sinkApps.Get (0));
   sinkApps.Start (Seconds (0.0));
-  Simulator::Schedule (Seconds (0.001), &TrackTotalRx, pktSink);
+  Simulator::Schedule (Seconds (0.001), &TrackTotalRx, pktSink, i);
   sinkApps.Stop (stopTime);
 }
 
@@ -550,7 +561,7 @@ main (int argc, char *argv[])
     {
       for (uint32_t i = 0; i < numNodesInGroup; i++)
         {
-          InstallPacketSink (destinations[j].Get (i), port, socketFactory);
+          InstallPacketSink (destinations[j].Get (i), port, socketFactory, j * numNodesInGroup + i);
         }
     }
   // Install BulkSend application for N nodes
@@ -585,11 +596,6 @@ main (int argc, char *argv[])
       saveQueueStats (p2prouter);
     }
   std::ofstream myfile;
-  myfile.open (dir + "/afct2.dat", std::fstream::in | std::fstream::out | std::fstream::app);
-  myfile << "AFCT = " << avg_afct / numNodes << "\n";
-  myfile << "Min AFCT = " << min_afct << "\n";
-  myfile << "Max AFCT = " << max_afct << "\n";
-  myfile.close ();
 
   // Store configuration of the simulation in a file
   myfile.open (dir + "config.txt", std::fstream::in | std::fstream::out | std::fstream::app);
@@ -601,6 +607,7 @@ main (int argc, char *argv[])
   myfile.close ();
 
   Simulator::Destroy ();
+  printFctStats ();
 
   return 0;
 }
