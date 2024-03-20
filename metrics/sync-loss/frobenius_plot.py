@@ -73,7 +73,6 @@ parking_dataset = [
     ],
 ]
 
-
 single_dataset = [
     [
         {
@@ -409,13 +408,13 @@ def frob_plot(data, name, xaxis, yaxis):
 #         "Average Flow Completion Time (ms)",
 #     )
 
-# for data in sync_parking_dataset:
-#     frob_plot(
-#         data,
-#         "sync-parking-bottleneck-" + data[0]["label"].split("/")[0],
-#         "Set",
-#         "Flow Synchrony",
-#     )
+for data in sync_parking_dataset:
+    frob_plot(
+        data,
+        "sync-parking-bottleneck-" + data[0]["label"].split("/")[0],
+        "Set",
+        "Flow Synchrony",
+    )
 
 # for data in sync_single_dataset:
 #     frob_plot(
@@ -425,10 +424,10 @@ def frob_plot(data, name, xaxis, yaxis):
 #         "Flow Synchrony",
 #     )
 
-for data in afct_parking_dataset:
-    frob_plot(
-        data,
-        "afct-parking-bottleneck-" + data[0]["label"].split("/")[0],
-        "Set",
-        "Average Flow Completion Time (ms)",
-    )
+# for data in afct_parking_dataset:
+#     frob_plot(
+#         data,
+#         "afct-parking-bottleneck-" + data[0]["label"].split("/")[0],
+#         "Set",
+#         "Average Flow Completion Time (ms)",
+#     )
