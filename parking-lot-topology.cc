@@ -24,11 +24,11 @@
 using namespace ns3;
 
 std::string dir = "examples/results/ppt-parking-lot";
-Time stopTime = Seconds (25);
-Time tracingDuration = Seconds (10);
+Time stopTime = Seconds (200);
+Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
-uint32_t numNodes = 10;
+uint32_t numNodes = 60;
 uint32_t rtt = 100;
 std::string tcpType = "TcpNewReno";
 bool isThresholdAQMEnabled = false;
