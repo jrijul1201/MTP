@@ -238,6 +238,23 @@ afct_single_dataset = [
     ],
 ]
 
+sync_single_dataset = [
+    [
+        {
+            "label": "60-TcpNewReno-200",
+            "withoutThresh": 0.045290650181128655,
+            "withThresh": 0.014418699784381999,
+        },
+    ],
+    [
+        {
+            "label": "60-TcpNewReno-10",
+            "withoutThresh": 0.025625211488666474,
+            "withThresh": 0.029371949489148057,
+        },
+    ],
+]
+
 corr_parking_dataset = [
     [
         {
@@ -311,10 +328,18 @@ def frob_plot(data, name, xaxis, yaxis):
 #         "Congestion Window Correlation",
 #     )
 
-for data in afct_single_dataset:
+# for data in afct_single_dataset:
+#     frob_plot(
+#         data,
+#         "afct-single-bottleneck-" + data[0]["label"].split("/")[0],
+#         "Configuration",
+#         "Average Flow Completion Time (ms)",
+#     )
+
+for data in sync_single_dataset:
     frob_plot(
         data,
-        "afct-single-bottleneck-" + data[0]["label"].split("/")[0],
+        "sync-single-bottleneck-" + data[0]["label"].split("/")[0],
         "Configuration",
-        "Average Flow Completion Time (ms)",
+        "Flow Synchrony",
     )
