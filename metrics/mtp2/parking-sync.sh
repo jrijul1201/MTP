@@ -2,10 +2,10 @@
 
 # List of folder paths
 folder_paths=(
-    "Dipesh/ns-allinone-3.36.1/ns-3.36.1/examples/results/ppt-parking-lotWithoutThresh/60-TcpNewReno-10"
-    "Dipesh/ns-allinone-3.36.1/ns-3.36.1/examples/results/ppt-parking-lotWithThresh/60-TcpNewReno-10"
-    "Dipesh/ns-allinone-3.36.1/ns-3.36.1/examples/results/ppt-parking-lotWithThresh/60-TcpNewReno-200"
-    "Dipesh/ns-allinone-3.36.1/ns-3.36.1/examples/results/ppt-parking-lotWithoutThresh/60-TcpNewReno-200"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/parking-sync/ppt-parking-lotWithoutThresh/60-TcpNewReno-10"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/parking-sync/ppt-parking-lotWithThresh/60-TcpNewReno-10"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/parking-sync/ppt-parking-lotWithThresh/60-TcpNewReno-200"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/parking-sync/ppt-parking-lotWithoutThresh/60-TcpNewReno-200"
 )
 
 my_script="parking-sync.py"
