@@ -22,7 +22,8 @@ def fill_time_gaps(data):
 
     # Define the time range with a step of 0.1
     time_range = [
-        round(10.001 + i * 0.001, 3) for i in range(int((19.999 - 10.001) / 0.001) + 1)
+        round(175.001 + i * 0.001, 3)
+        for i in range(int((199.999 - 175.001) / 0.001) + 1)
     ]
 
     # Initialize the last known value
