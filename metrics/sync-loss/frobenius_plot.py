@@ -240,7 +240,6 @@ sync_parking_dataset = [
     ],
 ]
 
-
 corr_single_dataset = [
     [
         {
@@ -309,6 +308,43 @@ corr_parking_dataset = [
     ],
 ]
 
+afct_parking_dataset = [
+    [
+        {
+            "label": "60-TcpNewReno-10/A",
+            "withoutThresh": 1680.2316666666668,
+            "withThresh": 1642.8956666666663,
+        },
+        {
+            "label": "60-TcpNewReno-10/B",
+            "withoutThresh": 1269.1106666666667,
+            "withThresh": 1381.594333333333,
+        },
+        {
+            "label": "60-TcpNewReno-10/C",
+            "withoutThresh": 1268.148,
+            "withThresh": 1369.2973333333334,
+        },
+    ],
+    [
+        {
+            "label": "60-TcpNewReno-200/A",
+            "withoutThresh": 1665.2086666666667,
+            "withThresh": 1685.9536666666665,
+        },
+        {
+            "label": "60-TcpNewReno-200/B",
+            "withoutThresh": 1343.0220000000004,
+            "withThresh": 1411.225666666667,
+        },
+        {
+            "label": "60-TcpNewReno-200/C",
+            "withoutThresh": 1343.3040000000003,
+            "withThresh": 1405.0950000000003,
+        },
+    ],
+]
+
 
 def frob_plot(data, name, xaxis, yaxis):
     for entry in data:
@@ -373,13 +409,13 @@ def frob_plot(data, name, xaxis, yaxis):
 #         "Average Flow Completion Time (ms)",
 #     )
 
-for data in sync_parking_dataset:
-    frob_plot(
-        data,
-        "sync-parking-bottleneck-" + data[0]["label"].split("/")[0],
-        "Set",
-        "Flow Synchrony",
-    )
+# for data in sync_parking_dataset:
+#     frob_plot(
+#         data,
+#         "sync-parking-bottleneck-" + data[0]["label"].split("/")[0],
+#         "Set",
+#         "Flow Synchrony",
+#     )
 
 # for data in sync_single_dataset:
 #     frob_plot(
@@ -388,3 +424,11 @@ for data in sync_parking_dataset:
 #         "Configuration",
 #         "Flow Synchrony",
 #     )
+
+for data in afct_parking_dataset:
+    frob_plot(
+        data,
+        "afct-parking-bottleneck-" + data[0]["label"].split("/")[0],
+        "Set",
+        "Average Flow Completion Time (ms)",
+    )
