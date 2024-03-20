@@ -203,6 +203,43 @@ new_parking_dataset = [
     ],
 ]
 
+sync_parking_dataset = [
+    [
+        {
+            "label": "60-TcpNewReno-10/A",
+            "withoutThresh": 0.43154428829412594,
+            "withThresh": 0.16119288752148958,
+        },
+        {
+            "label": "60-TcpNewReno-10/B",
+            "withoutThresh": 0.0479898536207136,
+            "withThresh": 0.19260426032020936,
+        },
+        {
+            "label": "60-TcpNewReno-10/C",
+            "withoutThresh": 0.078729823765805,
+            "withThresh": 0.24102585769830098,
+        },
+    ],
+    [
+        {
+            "label": "60-TcpNewReno-200/A",
+            "withoutThresh": 0.051836169143611374,
+            "withThresh": 0.06467189353519415,
+        },
+        {
+            "label": "60-TcpNewReno-200/B",
+            "withoutThresh": 0.15892660091051147,
+            "withThresh": 0.09029454285734492,
+        },
+        {
+            "label": "60-TcpNewReno-200/C",
+            "withoutThresh": 0.2775472578919864,
+            "withThresh": 0.0834252972147232,
+        },
+    ],
+]
+
 
 corr_single_dataset = [
     [
@@ -336,10 +373,18 @@ def frob_plot(data, name, xaxis, yaxis):
 #         "Average Flow Completion Time (ms)",
 #     )
 
-for data in sync_single_dataset:
+for data in sync_parking_dataset:
     frob_plot(
         data,
-        "sync-single-bottleneck-" + data[0]["label"].split("/")[0],
-        "Configuration",
+        "sync-parking-bottleneck-" + data[0]["label"].split("/")[0],
+        "Set",
         "Flow Synchrony",
     )
+
+# for data in sync_single_dataset:
+#     frob_plot(
+#         data,
+#         "sync-single-bottleneck-" + data[0]["label"].split("/")[0],
+#         "Configuration",
+#         "Flow Synchrony",
+#     )

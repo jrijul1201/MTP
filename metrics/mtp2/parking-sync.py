@@ -22,8 +22,7 @@ def fill_time_gaps(data):
 
     # Define the time range with a step of 0.1
     time_range = [
-        round(175.001 + i * 0.001, 3)
-        for i in range(int((199.999 - 175.001) / 0.001) + 1)
+        round(10.001 + i * 0.001, 3) for i in range(int((19.999 - 10.001) / 0.001) + 1)
     ]
 
     # Initialize the last known value
@@ -95,7 +94,7 @@ def save_matrix_to_csv(matrix, csv_file_path):
 def get_synchrony(traces, set_name):
     df = pd.DataFrame(traces).T
 
-    print(df)
+    # print(df)
     # Calculate standard deviation for each column (node)
     sum_sigma_x_i = df.std().sum()  # Sum of standard deviations for each column
 
@@ -115,7 +114,7 @@ if len(sys.argv) != 2:
 
 cwnd_traces = []
 input_file_path = sys.argv[1]
-# input_file_path = "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/results-parking/results-sandwich/WithoutThresh/60-TcpNewReno-10/cwndTraces"
+# input_file_path = "/media/rijul/Seagate Expansion Drive/MTP/MTP2-MidSem/parking-lot/WithThresh/60-TcpNewReno-200/cwndTraces"
 
 file_name_pattern = r"n(\d+).dat"  # Assumes names like n1.dat, n2.dat, etc.
 
