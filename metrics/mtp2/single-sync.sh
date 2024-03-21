@@ -2,10 +2,8 @@
 
 # List of folder paths
 folder_paths=(
-    "/media/rijul/Seagate Expansion Drive/MTP/MTP2-MidSem/single/single-bottleneck-withoutThresh/60-TcpNewReno-10"
-    "/media/rijul/Seagate Expansion Drive/MTP/MTP2-MidSem/single/single-bottleneck-withThresh/60-TcpNewReno-10"
-    "/media/rijul/Seagate Expansion Drive/MTP/MTP2-MidSem/single/single-bottleneck-withoutThresh/60-TcpNewReno-200"
-    "/media/rijul/Seagate Expansion Drive/MTP/MTP2-MidSem/single/single-bottleneck-withThresh/60-TcpNewReno-200"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/single-sync/60-TcpNewReno-10-withoutThresh"
+    "/home/rijul/ns-allinone-3.36.1/ns-3.36.1/examples/results/single-sync/60-TcpNewReno-10-withThresh"
 )
 
 # Path to the single-sync.py script

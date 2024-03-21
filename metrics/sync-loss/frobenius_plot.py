@@ -284,8 +284,8 @@ sync_single_dataset = [
     [
         {
             "label": "60-TcpNewReno-10",
-            "withoutThresh": 0.025625211488666474,
-            "withThresh": 0.029371949489148057,
+            "withoutThresh": 0.22405893045018177,
+            "withThresh": 0.03622827067652409,
         },
     ],
 ]
@@ -369,7 +369,7 @@ def frob_plot(data, name, xaxis, yaxis):
     with_thresh_patch = mpatches.Patch(color="pink", label="With Threshold AQM")
 
     # Adding legend with custom handles
-    plt.legend(handles=[without_thresh_patch, with_thresh_patch], loc="lower right")
+    plt.legend(handles=[without_thresh_patch, with_thresh_patch])
     plt.tight_layout()
 
     plt.savefig(name + ".png")
@@ -408,21 +408,21 @@ def frob_plot(data, name, xaxis, yaxis):
 #         "Average Flow Completion Time (ms)",
 #     )
 
-for data in sync_parking_dataset:
-    frob_plot(
-        data,
-        "sync-parking-bottleneck-" + data[0]["label"].split("/")[0],
-        "Set",
-        "Flow Synchrony",
-    )
-
-# for data in sync_single_dataset:
+# for data in sync_parking_dataset:
 #     frob_plot(
 #         data,
-#         "sync-single-bottleneck-" + data[0]["label"].split("/")[0],
-#         "Configuration",
+#         "sync-parking-bottleneck-" + data[0]["label"].split("/")[0],
+#         "Set",
 #         "Flow Synchrony",
 #     )
+
+for data in sync_single_dataset:
+    frob_plot(
+        data,
+        "sync-single-bottleneck-" + data[0]["label"].split("/")[0],
+        "Configuration",
+        "Flow Synchrony",
+    )
 
 # for data in afct_parking_dataset:
 #     frob_plot(
