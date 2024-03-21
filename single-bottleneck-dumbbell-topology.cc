@@ -37,7 +37,7 @@
 #include "router.h"
 
 using namespace ns3;
-std::string dir = "examples/results/single-sync";
+std::string dir = "examples/results/single-sync/";
 Time stopTime = Seconds (200);
 Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
