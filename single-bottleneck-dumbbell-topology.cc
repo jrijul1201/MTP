@@ -46,7 +46,7 @@ uint32_t numNodes = 60;
 DataRate bottleneckBandwidth;
 uint32_t rtt = 10;
 std::string tcpType = "TcpNewReno";
-bool isThresholdAQMEnabled = true;
+bool isThresholdAQMEnabled = false;
 
 static uint32_t
 GetNodeIdFromContext (std::string context)
