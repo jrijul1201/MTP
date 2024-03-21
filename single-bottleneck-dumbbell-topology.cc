@@ -37,14 +37,14 @@
 #include "router.h"
 
 using namespace ns3;
-std::string dir = "examples/results/";
-Time stopTime = Seconds (25);
-Time tracingDuration = Seconds (10);
+std::string dir = "examples/results/single-sync";
+Time stopTime = Seconds (200);
+Time tracingDuration = Seconds (25);
 Time tracingStartTime = stopTime - tracingDuration;
 uint32_t segmentSize = 1500;
-uint32_t numNodes = 4;
+uint32_t numNodes = 60;
 DataRate bottleneckBandwidth;
-uint32_t rtt = 100;
+uint32_t rtt = 10;
 std::string tcpType = "TcpNewReno";
 bool isThresholdAQMEnabled = true;
 
