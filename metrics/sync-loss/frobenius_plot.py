@@ -206,35 +206,35 @@ sync_parking_dataset = [
     [
         {
             "label": "60-TcpNewReno-10/A",
-            "withoutThresh": 0.43154428829412594,
-            "withThresh": 0.16119288752148958,
+            "withoutThresh": 0.1169982293188528,
+            "withThresh": 0.04212767474816828,
         },
         {
             "label": "60-TcpNewReno-10/B",
-            "withoutThresh": 0.0479898536207136,
-            "withThresh": 0.19260426032020936,
+            "withoutThresh": 0.06720857134825504,
+            "withThresh": 0.06364090158362665,
         },
         {
             "label": "60-TcpNewReno-10/C",
-            "withoutThresh": 0.078729823765805,
-            "withThresh": 0.24102585769830098,
+            "withoutThresh": 0.07973807160860723,
+            "withThresh": 0.04661830518061523,
         },
     ],
     [
         {
             "label": "60-TcpNewReno-200/A",
-            "withoutThresh": 0.051836169143611374,
-            "withThresh": 0.06467189353519415,
+            "withoutThresh": 0.0813929159694088,
+            "withThresh": 0.06106908660591634,
         },
         {
             "label": "60-TcpNewReno-200/B",
-            "withoutThresh": 0.15892660091051147,
-            "withThresh": 0.09029454285734492,
+            "withoutThresh": 0.15513757840089804,
+            "withThresh": 0.07670409407004009,
         },
         {
             "label": "60-TcpNewReno-200/C",
-            "withoutThresh": 0.2775472578919864,
-            "withThresh": 0.0834252972147232,
+            "withoutThresh": 0.10464322605581784,
+            "withThresh": 0.06428150566405219,
         },
     ],
 ]
