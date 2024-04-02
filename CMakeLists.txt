@@ -208,8 +208,8 @@ build_example(
 )
 
 build_example(
-  NAME multi-bottleneck
-  SOURCE_FILES multi-bottleneck-topology.cc
+  NAME afct-multi
+  SOURCE_FILES afct-multi-bottleneck-topology.cc
   LIBRARIES_TO_LINK
     ${libcore}
     ${libnetwork}
