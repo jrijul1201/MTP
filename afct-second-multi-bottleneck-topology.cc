@@ -1,7 +1,6 @@
 /**
- * Author : Mahima Gupta
- * Last Modified : 02/March/2024
- * Title : Multi Bottleneck Topology with DropTail Queues
+ * Author : Rijul & Dipsi
+ * Title : Multi Bottleneck Topology Second Topology
 */
 
 #include <iostream>
@@ -28,7 +27,7 @@
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
-std::string dir = "examples/results/mahima/tcpflavour";
+std::string dir = "examples/results/afct-second-multi";
 bool thEnabled = false;
 static const uint64_t totalTxBytes = 5242;
 static uint32_t currentTxBytes = 0;
