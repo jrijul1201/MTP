@@ -73,7 +73,6 @@ parking_dataset = [
     ],
 ]
 
-
 single_dataset = [
     [
         {
@@ -207,35 +206,35 @@ sync_parking_dataset = [
     [
         {
             "label": "60-TcpNewReno-10/A",
-            "withoutThresh": 0.43154428829412594,
-            "withThresh": 0.16119288752148958,
+            "withoutThresh": 0.1169982293188528,
+            "withThresh": 0.04212767474816828,
         },
         {
             "label": "60-TcpNewReno-10/B",
-            "withoutThresh": 0.0479898536207136,
-            "withThresh": 0.19260426032020936,
+            "withoutThresh": 0.06720857134825504,
+            "withThresh": 0.06364090158362665,
         },
         {
             "label": "60-TcpNewReno-10/C",
-            "withoutThresh": 0.078729823765805,
-            "withThresh": 0.24102585769830098,
+            "withoutThresh": 0.07973807160860723,
+            "withThresh": 0.04661830518061523,
         },
     ],
     [
         {
             "label": "60-TcpNewReno-200/A",
-            "withoutThresh": 0.051836169143611374,
-            "withThresh": 0.06467189353519415,
+            "withoutThresh": 0.0813929159694088,
+            "withThresh": 0.06106908660591634,
         },
         {
             "label": "60-TcpNewReno-200/B",
-            "withoutThresh": 0.15892660091051147,
-            "withThresh": 0.09029454285734492,
+            "withoutThresh": 0.15513757840089804,
+            "withThresh": 0.07670409407004009,
         },
         {
             "label": "60-TcpNewReno-200/C",
-            "withoutThresh": 0.2775472578919864,
-            "withThresh": 0.0834252972147232,
+            "withoutThresh": 0.10464322605581784,
+            "withThresh": 0.06428150566405219,
         },
     ],
 ]
@@ -285,8 +284,8 @@ sync_single_dataset = [
     [
         {
             "label": "60-TcpNewReno-10",
-            "withoutThresh": 0.025625211488666474,
-            "withThresh": 0.029371949489148057,
+            "withoutThresh": 0.22405893045018177,
+            "withThresh": 0.03622827067652409,
         },
     ],
 ]
@@ -370,7 +369,7 @@ def frob_plot(data, name, xaxis, yaxis):
     with_thresh_patch = mpatches.Patch(color="pink", label="With Threshold AQM")
 
     # Adding legend with custom handles
-    plt.legend(handles=[without_thresh_patch, with_thresh_patch], loc="lower right")
+    plt.legend(handles=[without_thresh_patch, with_thresh_patch])
     plt.tight_layout()
 
     plt.savefig(name + ".png")
@@ -417,18 +416,18 @@ def frob_plot(data, name, xaxis, yaxis):
 #         "Flow Synchrony",
 #     )
 
-# for data in sync_single_dataset:
-#     frob_plot(
-#         data,
-#         "sync-single-bottleneck-" + data[0]["label"].split("/")[0],
-#         "Configuration",
-#         "Flow Synchrony",
-#     )
-
-for data in afct_parking_dataset:
+for data in sync_single_dataset:
     frob_plot(
         data,
-        "afct-parking-bottleneck-" + data[0]["label"].split("/")[0],
-        "Set",
-        "Average Flow Completion Time (ms)",
+        "sync-single-bottleneck-" + data[0]["label"].split("/")[0],
+        "Configuration",
+        "Flow Synchrony",
     )
+
+# for data in afct_parking_dataset:
+#     frob_plot(
+#         data,
+#         "afct-parking-bottleneck-" + data[0]["label"].split("/")[0],
+#         "Set",
+#         "Average Flow Completion Time (ms)",
+#     )
