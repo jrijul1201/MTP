@@ -6,9 +6,16 @@
 */
 
 #include <iostream>
-#include <fstream>
+#include <stdio.h>
+#include <regex>
+#include <stdlib.h>
 #include <string>
+#include <fstream>
+#include <ctime>
+#include <sstream>
+#include <sys/stat.h>
 #include <cassert>
+#include <vector>
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -599,9 +606,10 @@ main (int argc, char *argv[])
   cmd.AddValue ("R6_queue_size", "Queue Size", R6_queue_size);
   cmd.AddValue ("thEnabled", "ThEnabled", thEnabled);
   cmd.Parse (argc, argv);
-  dir += (thEnabled ? std::to_string (R6_queue_size) + "-" + RTT : "-" + RTT) + "/" + flavour + "/";
+  // dir += (thEnabled ? std::to_string (R6_queue_size) + "-" + RTT : "-" + RTT) + "/";
 
   NS_LOG_UNCOND ("QueueSize : " << R6_queue_size << "\tRound Trip Time: " << RTT);
+  std::cout << "QueueSize : " << R6_queue_size << "\tRound Trip Time: " << RTT;
 
   /**
      * -----------------------------------------------------------------
@@ -1223,6 +1231,7 @@ main (int argc, char *argv[])
   // There are no apps that can utilize the Socket Option so doing the work directly..
   // Taken from tcp-large-transfer example
   NS_LOG_UNCOND ("Reached TCP Socket Scheduling");
+  std::cout << ("Reached TCP Socket Scheduling");
   Ptr<Socket> src_socket[number_of_sources - 5][1];
   for (uint32_t i = 0; i < number_of_sources - 5; i++)
     {
@@ -1280,6 +1289,7 @@ main (int argc, char *argv[])
   // --------------------------------------------------
 
   NS_LOG_UNCOND ("UDP Applications on Node 50, 51, 52, 55, 56, 57, 58, 59");
+  std::cout << ("UDP Applications on Node 50, 51, 52, 55, 56, 57, 58, 59");
   int number_of_UDP_sources = 8;
   uint16_t port = 4000;
   int kkey = number_of_sources - 10;
@@ -1310,6 +1320,7 @@ main (int argc, char *argv[])
   //       HTTP Sockets Scheduling
   // --------------------------------------------------
   NS_LOG_UNCOND ("HTTP Applications on Nodes 0 - 49 ");
+  std::cout << ("HTTP Applications on Nodes 0 - 49 ");
   int number_of_HTTP_Servers = 50;
   ApplicationContainer serverApplications[number_of_HTTP_Servers];
   ApplicationContainer clientApplications[number_of_HTTP_Servers];
@@ -1362,26 +1373,38 @@ main (int argc, char *argv[])
   else if (R6_queue_size == 15)
     iterator = "Threshold15" + RTT + "RTT";
 
+  dir += iterator + "/";
+  struct stat buffer;
+  [[maybe_unused]] int retVal;
+  if ((stat (dir.c_str (), &buffer)) == 0)
+    {
+      std::string dirToRemove = "rm -rf " + dir;
+      retVal = system (dirToRemove.c_str ());
+      NS_ASSERT_MSG (retVal == 0, "Error in return value");
+    }
+  std::string dirToSave = "mkdir -p " + dir;
+  retVal = system (dirToSave.c_str ());
+
   // Configuring file stream to write the Qsize
   AsciiTraceHelper ascii_qsize;
-  qSize_stream = ascii_qsize.CreateFileStream (iterator + "QS.txt");
+  qSize_stream = ascii_qsize.CreateFileStream (dir + "QS.txt");
 
   AsciiTraceHelper ascii_dropped;
-  dropped_stream = ascii_dropped.CreateFileStream (iterator + "Loss.txt");
+  dropped_stream = ascii_dropped.CreateFileStream (dir + "Loss.txt");
 
   AsciiTraceHelper ascii_qsize_tx;
-  bottleneckTransmittedStream = ascii_qsize_tx.CreateFileStream (iterator + "th.txt");
+  bottleneckTransmittedStream = ascii_qsize_tx.CreateFileStream (dir + "th.txt");
 
   AsciiTraceHelper ascii_tx;
-  utilization = ascii_tx.CreateFileStream (iterator + "U.txt");
+  utilization = ascii_tx.CreateFileStream (dir + "U.txt");
 
   AsciiTraceHelper ascii_cwnd;
-  congestion_window = ascii_cwnd.CreateFileStream (iterator + "cwnd.txt");
+  congestion_window = ascii_cwnd.CreateFileStream (dir + "cwnd.txt");
 
   Simulator::Schedule (Seconds (stime), &StartTracingQueueSize);
   Simulator::Schedule (Seconds (stime), &StartTracingSink);
   Simulator::Schedule (Seconds (stime), &StartTracingUtilization);
-  Simulator::Schedule (Seconds (stime), &TraceDroppedPacket, iterator + "Loss.txt");
+  Simulator::Schedule (Seconds (stime), &TraceDroppedPacket, dir + "Loss.txt");
   Simulator::Schedule (Seconds (stime), &StartTraceCwnd, 0);
   for (int time = stime; time < simDuration;)
     {
@@ -1407,6 +1430,7 @@ void
 StartFlow (Ptr<Socket> localSocket, Ipv4Address servAddress, uint16_t servPort)
 {
   NS_LOG_INFO ("Starting flow at time " << Simulator::Now ().GetSeconds ());
+  // std::cout << "Starting flow at time " << Simulator::Now ().GetSeconds ();
   currentTxBytes = 0;
   localSocket->Bind ();
   localSocket->Connect (InetSocketAddress (servAddress, servPort)); //connect
@@ -1421,6 +1445,7 @@ void
 StartFlow2 (Ptr<Socket> localSocket, Ipv4Address servAddress, uint16_t servPort)
 {
   NS_LOG_INFO ("Starting flow again at time " << Simulator::Now ().GetSeconds ());
+  // std::cout << "Starting flow again at time " << Simulator::Now ().GetSeconds ();
   currentTxBytes = 0;
   localSocket->SetSendCallback (MakeCallback (&WriteUntilBufferFull));
   WriteUntilBufferFull (localSocket, localSocket->GetTxAvailable ());
