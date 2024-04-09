@@ -31,11 +31,19 @@ TCP_FLAVOUR=("TcpLinuxReno" "TcpNewReno")
 # # fourth loop iterate over Thresh
 # for l in {0..1}
 # do
-    for rtt in {10..300..5}
-    do
-        ../../ns3 run multi-bottleneck -- --thEnabled=true --R6_queue_size=100 --RTT=${rtt}ms --flavour=${TCP_FLAVOUR[1]} &
-        ../../ns3 run multi-bottleneck -- --thEnabled=true --R6_queue_size=15 --RTT=${rtt}ms --flavour=${TCP_FLAVOUR[1]}&
-        ../../ns3 run multi-bottleneck -- --RTT=${rtt}ms --flavour=${TCP_FLAVOUR[1]} &
-        wait
-    done
+# for rtt in {10..300..5}
+# do
+#     ../../ns3 run afct-multi -- --thEnabled=true --R6_queue_size=100 --RTT=${rtt}ms --flavour=${TCP_FLAVOUR[1]} &
+#     ../../ns3 run afct-multi -- --thEnabled=true --R6_queue_size=15 --RTT=${rtt}ms --flavour=${TCP_FLAVOUR[1]}&
+#     ../../ns3 run afct-multi -- --RTT=${rtt}ms --flavour=${TCP_FLAVOUR[1]} &
+#     wait
 # done
+# done
+
+for rtt in {10..300..5}
+do
+    ../../ns3 run afct-hetero -- --thEnabled=true --R6_queue_size=100 --RTT=${rtt}ms &
+    ../../ns3 run afct-hetero -- --thEnabled=true --R6_queue_size=15 --RTT=${rtt}ms &
+    ../../ns3 run afct-hetero -- --RTT=${rtt}ms &
+    wait
+done

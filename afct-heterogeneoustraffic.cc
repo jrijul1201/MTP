@@ -1367,11 +1367,11 @@ main (int argc, char *argv[])
       */
   std::string iterator;
   if (R6_queue_size > 100)
-    iterator = "DropTail" + RTT.substr (0, RTT.length () - 2) + "RTT";
+    iterator = "DropTail-" + RTT.substr (0, RTT.length () - 2) + "RTT";
   else if (R6_queue_size == 100)
-    iterator = "Threshold100" + RTT + "RTT";
+    iterator = "Threshold100-" + RTT + "RTT";
   else if (R6_queue_size == 15)
-    iterator = "Threshold15" + RTT + "RTT";
+    iterator = "Threshold15-" + RTT + "RTT";
 
   dir += iterator + "/";
   struct stat buffer;
