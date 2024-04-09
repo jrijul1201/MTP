@@ -1,6 +1,8 @@
 /**
- * Author : Rijul & Dipsi
- * Title : Multi Bottleneck Topology Second Topology
+ * Author : Mahima Gupta
+ * Date Created : 29/March/2024
+ * Last Modified : 29/March/2024
+ * Title : Multi Bottleneck Topology with DropTail Queues
 */
 
 #include <iostream>
@@ -27,9 +29,10 @@
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
-std::string dir = "examples/results/afct-second-multi";
+
+std::string dir = "examples/results/hetero/";
 bool thEnabled = false;
-static const uint64_t totalTxBytes = 5242;
+static const uint32_t totalTxBytes = 524288000;
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
 uint8_t data[writeSize];
@@ -366,36 +369,67 @@ static void
 StartTracingSink ()
 {
   for (int i = 0; i < 5; i++)
-    Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
-                                       "/ApplicationList/*/$ns3::PacketSink/Rx",
-                                   MakeCallback (&SinkRxCount)); // Route 1
+    {
+      Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                         "/ApplicationList/*/$ns3::PacketSink/Rx",
+                                     MakeCallback (&SinkRxCount)); // Route 1
+      Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                         "/ApplicationList/*/$ns3::ThreeGppHttpServer/Rx",
+                                     MakeCallback (&SinkRxCount));
+    }
 
   for (int i = 5; i < 10; i++)
-    Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
-                                       "/ApplicationList/*/$ns3::PacketSink/Rx",
-                                   MakeCallback (&SinkRxCount2)); // Route 2
+    {
+      Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                         "/ApplicationList/*/$ns3::PacketSink/Rx",
+                                     MakeCallback (&SinkRxCount2)); // Route 2
+      Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                         "/ApplicationList/*/$ns3::ThreeGppHttpServer/Rx",
+                                     MakeCallback (&SinkRxCount2));
+    }
 
   for (int i = 10; i < 24; i++)
-    Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
-                                       "/ApplicationList/*/$ns3::PacketSink/Rx",
-                                   MakeCallback (&SinkRxCount3)); // Route 3
+    {
+      Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                         "/ApplicationList/*/$ns3::PacketSink/Rx",
+                                     MakeCallback (&SinkRxCount3)); // Route 3
+      Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                         "/ApplicationList/*/$ns3::ThreeGppHttpServer/Rx",
+                                     MakeCallback (&SinkRxCount3));
+    }
 
   for (int i = 24; i < 29; i++)
-    Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
-                                       "/ApplicationList/*/$ns3::PacketSink/Rx",
-                                   MakeCallback (&SinkRxCount4)); // Route 4
+    {
+      Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                         "/ApplicationList/*/$ns3::PacketSink/Rx",
+                                     MakeCallback (&SinkRxCount4)); // Route 4
+      Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                         "/ApplicationList/*/$ns3::ThreeGppHttpServer/Rx",
+                                     MakeCallback (&SinkRxCount4));
+    }
 
   for (int i = 29; i < 32; i++)
-    Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
-                                       "/ApplicationList/*/$ns3::PacketSink/Rx",
-                                   MakeCallback (&SinkRxCount5)); // Route 5
+    {
+      Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                         "/ApplicationList/*/$ns3::PacketSink/Rx",
+                                     MakeCallback (&SinkRxCount5)); // Route 5
+      Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                         "/ApplicationList/*/$ns3::ThreeGppHttpServer/Rx",
+                                     MakeCallback (&SinkRxCount5));
+    }
 
-  for (int i = 32; i < 53; i++)
-    Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
-                                       "/ApplicationList/*/$ns3::PacketSink/Rx",
-                                   MakeCallback (&SinkRxCount6)); // Route 6
+  for (int i = 32; i < 52; i++)
+    {
+      Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                         "/ApplicationList/*/$ns3::PacketSink/Rx",
+                                     MakeCallback (&SinkRxCount6)); // Route 6
+      if (i < 50)
+        Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
+                                           "/ApplicationList/*/$ns3::ThreeGppHttpServer/Rx",
+                                       MakeCallback (&SinkRxCount6));
+    }
 
-  for (int i = 53; i < 57; i++)
+  for (int i = 52; i < 57; i++)
     Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i + (i + 1)) +
                                        "/ApplicationList/*/$ns3::PacketSink/Rx",
                                    MakeCallback (&SinkRxCount7)); // Route 7
@@ -460,8 +494,8 @@ TraceUtilization (uint32_t pktSize)
   float btl_thr6 = ((packetsTransmitted6 - previous_transmitted_packets6) * 8 * pktSize) /
                    (1000 * 1000 * (currrent_time.GetSeconds () - prevTime02.GetSeconds ()));
   *utilization->GetStream () << Simulator::Now ().GetSeconds () << "\t" << btl_thr / 100 << "\t"
-                             << btl_thr2 / 100 << "\t" << btl_thr3 / 100 << "\t" << btl_thr4 / 100
-                             << "\t" << btl_thr5 / 100 << "\t" << btl_thr6 / 100 << std::endl;
+                             << btl_thr2 / 40 << "\t" << btl_thr3 / 40 << "\t" << btl_thr4 / 60
+                             << "\t" << btl_thr5 / 60 << "\t" << btl_thr6 / 60 << std::endl;
   previous_transmitted_packets = packetsTransmitted;
   previous_transmitted_packets2 = packetsTransmitted2;
   previous_transmitted_packets3 = packetsTransmitted3;
@@ -529,7 +563,7 @@ static void
 TraceCwnd ()
 {
   *congestion_window->GetStream () << Simulator::Now ().GetSeconds ();
-  for (int i = 0; i < number_of_sources; i++)
+  for (int i = 0; i < number_of_sources - 5; i++)
     *congestion_window->GetStream () << "\t" << cwnd[i];
   *congestion_window->GetStream () << std::endl;
 }
@@ -537,7 +571,7 @@ TraceCwnd ()
 void
 StartTraceCwnd (uint32_t socketId)
 {
-  for (int i = 0; i < number_of_sources; i++)
+  for (int i = 0; i < number_of_sources - 5; i++)
     Config::ConnectWithoutContext ("/NodeList/" + std::to_string (i * 2) +
                                        "/$ns3::TcpL4Protocol/SocketList/" +
                                        std::to_string (socketId) + "/CongestionWindow",
@@ -550,8 +584,7 @@ main (int argc, char *argv[])
   // --------------------------------------------------
   //        Variable Declaration & Configurations
   // --------------------------------------------------
-  std::string flavour = "TcpLinuxReno"; //TCP variant considered
-  std::string tcpType = flavour;
+  std::string flavour = "TcpCubic"; //TCP variant considered
   int simDuration = 10000; // In Seconds
   std::string RTT = "94ms"; //round-trip time of each TCP flow
   int number_of_nodes = 12 + (number_of_sources * 2);
@@ -559,11 +592,7 @@ main (int argc, char *argv[])
   int router_starting_index = number_of_sources * 2;
   int pktSize = 1446;
   float queue_size = 2084;
-  int R6_queue_size = 2084 * (0.6);
-
-  ConfigStore config;
-  config.ConfigureDefaults ();
-  config.ConfigureAttributes ();
+  float R6_queue_size = 2084 * (0.6);
 
   /**
      * -----------------------------------------------------------------
@@ -577,16 +606,24 @@ main (int argc, char *argv[])
   cmd.AddValue ("R6_queue_size", "Queue Size", R6_queue_size);
   cmd.AddValue ("thEnabled", "ThEnabled", thEnabled);
   cmd.Parse (argc, argv);
-  std::string tcpModel ("ns3::" + flavour);
+  // dir += (thEnabled ? std::to_string (R6_queue_size) + "-" + RTT : "-" + RTT) + "/";
 
-  dir += (thEnabled ? std::to_string (R6_queue_size) + "-" + RTT : "-" + RTT) + "/" + flavour + "/";
-  NS_LOG_UNCOND ("TCP Flavor : " << flavour << "\t QueueSize : " << R6_queue_size
-                                 << "\tRound Trip Time: " << RTT);
+  NS_LOG_UNCOND ("QueueSize : " << R6_queue_size << "\tRound Trip Time: " << RTT);
+  std::cout << "QueueSize : " << R6_queue_size << "\tRound Trip Time: " << RTT;
 
-  Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue ("ns3::" + tcpType));
+  /**
+     * -----------------------------------------------------------------
+     * Configurations 
+     * -----------------------------------------------------------------
+     */
+
+  ConfigStore config;
+  config.ConfigureDefaults ();
+  config.ConfigureAttributes ();
   Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (pktSize));
   Config::SetDefault ("ns3::TcpSocket::InitialCwnd", UintegerValue (1));
   Config::SetDefault ("ns3::TcpSocketBase::MaxWindowSize", UintegerValue (20 * 1000));
+
   // --------------------------------------------------
   //            Node Initilisation
   // --------------------------------------------------
@@ -691,6 +728,34 @@ main (int argc, char *argv[])
   bottleneck_p2p.SetQueue ("ns3::DropTailQueue<Packet>", "MaxSize",
                            QueueSizeValue (QueueSize ("2084p"))); // p in 1000p stands for packets
   bottleneck_p2p.DisableFlowControl ();
+
+  // --------------------------------------------------
+  //            Setting up TCP Flavor
+  // --------------------------------------------------
+
+  Ptr<TcpL4Protocol> proto;
+  //Setting TCP flavor for TCP sources
+  for (int i = 0; i < number_of_sources - 5; i++)
+    {
+      proto = nodes.Get (i * 2)->GetObject<TcpL4Protocol> ();
+      if (i < 27)
+        proto->SetAttribute ("SocketType", TypeIdValue (TcpNewReno::GetTypeId ()));
+      else
+        proto->SetAttribute ("SocketType", TypeIdValue (TcpCubic::GetTypeId ()));
+    }
+  //Setting TCP flavor for TCP destinations
+  for (int i = 0; i < number_of_sources - 5; i++)
+    {
+      proto = nodes.Get (i + (i + 1))->GetObject<TcpL4Protocol> ();
+      if (i < 27)
+        proto->SetAttribute ("SocketType", TypeIdValue (TcpNewReno::GetTypeId ()));
+      else
+        proto->SetAttribute ("SocketType", TypeIdValue (TcpCubic::GetTypeId ()));
+    }
+
+  // --------------------------------------------------
+  //            NetDevice Containers
+  // --------------------------------------------------
 
   NetDeviceContainer devices[number_of_links];
   for (uint32_t i = 0; i < number_of_links; i++)
@@ -1165,8 +1230,10 @@ main (int argc, char *argv[])
 
   // There are no apps that can utilize the Socket Option so doing the work directly..
   // Taken from tcp-large-transfer example
-  Ptr<Socket> src_socket[number_of_sources][1];
-  for (uint32_t i = 0; i < number_of_sources; i++)
+  NS_LOG_UNCOND ("Reached TCP Socket Scheduling");
+  std::cout << ("Reached TCP Socket Scheduling");
+  Ptr<Socket> src_socket[number_of_sources - 5][1];
+  for (uint32_t i = 0; i < number_of_sources - 5; i++)
     {
       for (uint32_t j = 0; j < 1; j++)
         {
@@ -1176,8 +1243,8 @@ main (int argc, char *argv[])
     }
 
   uint16_t dstport = 12345;
-  std::string dstaddr[number_of_sources];
-  for (int i = 0; i < number_of_sources; i++)
+  std::string dstaddr[number_of_sources - 5];
+  for (int i = 0; i < number_of_sources - 5; i++)
     dstaddr[i] = "10.30." + std::to_string (i + 1) + ".2";
 
   double mean = 0.1; // more like a ~ 0.06
@@ -1188,8 +1255,8 @@ main (int argc, char *argv[])
 
   PacketSinkHelper sink ("ns3::TcpSocketFactory",
                          InetSocketAddress (Ipv4Address::GetAny (), dstport));
-  ApplicationContainer apps[number_of_sources];
-  for (uint32_t i = 0; i < number_of_sources; i++)
+  ApplicationContainer apps[number_of_sources - 5];
+  for (uint32_t i = 0; i < number_of_sources - 5; i++)
     {
       apps[i] = sink.Install (nodes.Get (i + (i + 1)));
       Ptr<PacketSink> pktSink = StaticCast<PacketSink> (apps[i].Get (0));
@@ -1199,7 +1266,7 @@ main (int argc, char *argv[])
     }
 
   double stime = 0;
-  for (int i = 0; i < number_of_sources; i++)
+  for (int i = 0; i < number_of_sources - 5; i++)
     {
       double gap = expRandomVariable->GetValue ();
       Simulator::Schedule (Seconds (gap), &StartFlow, src_socket[i][0],
@@ -1208,13 +1275,84 @@ main (int argc, char *argv[])
 
   for (int i = 1; i < simDuration; i++)
     {
-      for (int j = 0; j < number_of_sources; j++)
+      for (int j = 0; j < number_of_sources - 5; j++)
         {
           double gap = expRandomVariable->GetValue ();
           Simulator::Schedule (Seconds (i + gap), &StartFlow2, src_socket[j][0],
                                Ipv4Address (dstaddr[j].c_str ()), dstport);
           //stime += gap;
         }
+    }
+
+  // --------------------------------------------------
+  //       UDP Sockets Scheduling
+  // --------------------------------------------------
+
+  NS_LOG_UNCOND ("UDP Applications on Node 50, 51, 52, 55, 56, 57, 58, 59");
+  std::cout << ("UDP Applications on Node 50, 51, 52, 55, 56, 57, 58, 59");
+  int number_of_UDP_sources = 8;
+  uint16_t port = 4000;
+  int kkey = number_of_sources - 10;
+  ApplicationContainer UDPApps[number_of_UDP_sources];
+  OnOffHelper clientHelper ("ns3::UdpSocketFactory", Address ());
+  clientHelper.SetConstantRate (DataRate ("2Mb/s"));
+  ApplicationContainer UDPclientApps[number_of_UDP_sources];
+
+  PacketSinkHelper UDPSink ("ns3::UdpSocketFactory",
+                            InetSocketAddress (Ipv4Address::GetAny (), port));
+  for (int i = 0; i < number_of_UDP_sources; i++)
+    {
+      if (i == 3)
+        kkey = number_of_sources - 5;
+      UDPApps[i] = UDPSink.Install (nodes.Get (kkey + (kkey + 1)));
+      UDPApps[i].Start (Seconds (0.0));
+      UDPApps[i].Stop (Seconds (simDuration));
+      AddressValue remoteAddress (
+          InetSocketAddress (ip_addresses[kkey + number_of_sources + 15].GetAddress (1), port));
+      clientHelper.SetAttribute ("Remote", remoteAddress);
+      UDPclientApps[i] = (clientHelper.Install (nodes.Get (kkey * 2)));
+      kkey++;
+      UDPclientApps[i].Start (Seconds (0.0));
+      UDPclientApps[i].Stop (Seconds (simDuration));
+    }
+
+  // --------------------------------------------------
+  //       HTTP Sockets Scheduling
+  // --------------------------------------------------
+  NS_LOG_UNCOND ("HTTP Applications on Nodes 0 - 49 ");
+  std::cout << ("HTTP Applications on Nodes 0 - 49 ");
+  int number_of_HTTP_Servers = 50;
+  ApplicationContainer serverApplications[number_of_HTTP_Servers];
+  ApplicationContainer clientApplications[number_of_HTTP_Servers];
+  for (int i = 0; i < number_of_HTTP_Servers; i++)
+    {
+      Address serverAddress = Address (ip_addresses[i + number_of_sources + 15].GetAddress (1));
+
+      ThreeGppHttpServerHelper serverHelper (serverAddress);
+      serverApplications[i] = serverHelper.Install (nodes.Get (i + (i + 1)));
+
+      Ptr<ThreeGppHttpServer> httpServer =
+          serverApplications[i].Get (0)->GetObject<ThreeGppHttpServer> ();
+      PointerValue varPtr;
+      httpServer->GetAttribute ("Variables", varPtr);
+      Ptr<ThreeGppHttpVariables> httpVariables = varPtr.Get<ThreeGppHttpVariables> ();
+      Ptr<UniformRandomVariable> reqSize = CreateObject<UniformRandomVariable> ();
+      reqSize->SetAttribute ("Min", DoubleValue (50));
+      reqSize->SetAttribute ("Max", DoubleValue (100));
+      httpVariables->SetRequestSize (reqSize->GetValue ());
+      Ptr<UniformRandomVariable> number_of_embedded_objects =
+          CreateObject<UniformRandomVariable> ();
+      number_of_embedded_objects->SetAttribute ("Min", DoubleValue (4000));
+      number_of_embedded_objects->SetAttribute ("Min", DoubleValue (5000));
+      httpVariables->SetEmbeddedObjectSizeMean (number_of_embedded_objects->GetValue ());
+
+      serverApplications[i].Start (Seconds (0.0));
+      serverApplications[i].Stop (Seconds (simDuration));
+
+      ThreeGppHttpClientHelper HTTPclientHelper (serverAddress);
+      clientApplications[i] = HTTPclientHelper.Install (nodes.Get (i * 2));
+      clientApplications[i].Start (Seconds (0.0));
+      clientApplications[i].Stop (Seconds (simDuration));
     }
 
   Ipv4GlobalRoutingHelper g;
@@ -1227,9 +1365,17 @@ main (int argc, char *argv[])
        *                  Trace Files and Simulation Run
        * -----------------------------------------------------------------
       */
+  std::string iterator;
+  if (R6_queue_size > 100)
+    iterator = "DropTail-" + RTT.substr (0, RTT.length () - 2) + "RTT";
+  else if (R6_queue_size == 100)
+    iterator = "Threshold100-" + RTT + "RTT";
+  else if (R6_queue_size == 15)
+    iterator = "Threshold15-" + RTT + "RTT";
+
+  dir += iterator + "/";
   struct stat buffer;
   [[maybe_unused]] int retVal;
-  std::string iterator = "100RTT";
   if ((stat (dir.c_str (), &buffer)) == 0)
     {
       std::string dirToRemove = "rm -rf " + dir;
@@ -1238,34 +1384,27 @@ main (int argc, char *argv[])
     }
   std::string dirToSave = "mkdir -p " + dir;
   retVal = system (dirToSave.c_str ());
-  if (R6_queue_size > 100)
-    iterator = "DropTail-" + std::to_string (R6_queue_size) + "-" +
-               RTT.substr (0, RTT.length () - 2) + "-RTT";
-  else
-    iterator = "Threshold-" + std::to_string (R6_queue_size) + "-" +
-               RTT.substr (0, RTT.length () - 2) + "-RTT";
 
   // Configuring file stream to write the Qsize
   AsciiTraceHelper ascii_qsize;
-  qSize_stream = ascii_qsize.CreateFileStream (dir + iterator + "QS.txt");
+  qSize_stream = ascii_qsize.CreateFileStream (dir + "QS.txt");
 
   AsciiTraceHelper ascii_dropped;
-  dropped_stream = ascii_dropped.CreateFileStream (dir + iterator + "Loss.txt");
+  dropped_stream = ascii_dropped.CreateFileStream (dir + "Loss.txt");
 
-  // Configuring file stream to write the no of packets transmitted by the bottleneck
   AsciiTraceHelper ascii_qsize_tx;
-  bottleneckTransmittedStream = ascii_qsize_tx.CreateFileStream (dir + iterator + "th.txt");
+  bottleneckTransmittedStream = ascii_qsize_tx.CreateFileStream (dir + "th.txt");
 
   AsciiTraceHelper ascii_tx;
-  utilization = ascii_tx.CreateFileStream (dir + iterator + "U.txt");
+  utilization = ascii_tx.CreateFileStream (dir + "U.txt");
 
   AsciiTraceHelper ascii_cwnd;
-  congestion_window = ascii_cwnd.CreateFileStream (dir + iterator + "cwnd.txt");
+  congestion_window = ascii_cwnd.CreateFileStream (dir + "cwnd.txt");
 
   Simulator::Schedule (Seconds (stime), &StartTracingQueueSize);
   Simulator::Schedule (Seconds (stime), &StartTracingSink);
   Simulator::Schedule (Seconds (stime), &StartTracingUtilization);
-  Simulator::Schedule (Seconds (stime), &TraceDroppedPacket, iterator + "Loss.txt");
+  Simulator::Schedule (Seconds (stime), &TraceDroppedPacket, dir + "Loss.txt");
   Simulator::Schedule (Seconds (stime), &StartTraceCwnd, 0);
   for (int time = stime; time < simDuration;)
     {
@@ -1291,6 +1430,7 @@ void
 StartFlow (Ptr<Socket> localSocket, Ipv4Address servAddress, uint16_t servPort)
 {
   NS_LOG_INFO ("Starting flow at time " << Simulator::Now ().GetSeconds ());
+  // std::cout << "Starting flow at time " << Simulator::Now ().GetSeconds ();
   currentTxBytes = 0;
   localSocket->Bind ();
   localSocket->Connect (InetSocketAddress (servAddress, servPort)); //connect
@@ -1305,6 +1445,7 @@ void
 StartFlow2 (Ptr<Socket> localSocket, Ipv4Address servAddress, uint16_t servPort)
 {
   NS_LOG_INFO ("Starting flow again at time " << Simulator::Now ().GetSeconds ());
+  // std::cout << "Starting flow again at time " << Simulator::Now ().GetSeconds ();
   currentTxBytes = 0;
   localSocket->SetSendCallback (MakeCallback (&WriteUntilBufferFull));
   WriteUntilBufferFull (localSocket, localSocket->GetTxAvailable ());
@@ -1344,4 +1485,5 @@ printFctStats ()
       myfile << index << "\t" << fct << "\n";
     }
   myfile.close ();
+  std::cout << "\nAFCT saved!\n";
 }
