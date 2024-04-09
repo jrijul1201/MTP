@@ -32,7 +32,7 @@ NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 
 std::string dir = "examples/results/hetero/";
 bool thEnabled = false;
-static const uint32_t totalTxBytes = 10000000;
+static const uint32_t totalTxBytes = 524288000;
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
 uint8_t data[writeSize];
@@ -585,7 +585,7 @@ main (int argc, char *argv[])
   //        Variable Declaration & Configurations
   // --------------------------------------------------
   std::string flavour = "TcpCubic"; //TCP variant considered
-  int simDuration = 250; // In Seconds
+  int simDuration = 10000; // In Seconds
   std::string RTT = "94ms"; //round-trip time of each TCP flow
   int number_of_nodes = 12 + (number_of_sources * 2);
   int number_of_links = 15 + (number_of_sources * 2);
@@ -1485,4 +1485,5 @@ printFctStats ()
       myfile << index << "\t" << fct << "\n";
     }
   myfile.close ();
+  std::cout << "\nAFCT saved!\n";
 }
