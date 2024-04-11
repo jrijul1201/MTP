@@ -32,7 +32,7 @@ NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 
 std::string dir = "examples/results/hetero/";
 bool thEnabled = false;
-static const uint32_t totalTxBytes = 524288000;
+static const uint32_t totalTxBytes = 104857600;
 int simDuration = 10000; // In Seconds
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
