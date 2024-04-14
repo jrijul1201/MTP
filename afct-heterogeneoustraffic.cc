@@ -30,10 +30,10 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 
-std::string dir = "examples/results/hetero/";
+std::string dir = "examples/results/hetero-400kb/";
 bool thEnabled = false;
-static const uint32_t totalTxBytes = 104857600;
-int simDuration = 10000; // In Seconds
+static const uint32_t totalTxBytes = 409600;
+int simDuration = 50; // In Seconds
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
 uint8_t data[writeSize];
@@ -159,7 +159,7 @@ TrackTotalRx (Ptr<PacketSink> pktSink, int index)
     {
       Time now = Simulator::Now ();
       fctMap[index] = now.GetSeconds ();
-      // std::cout << now.GetSeconds () << " done\n";
+      std::cout << now.GetSeconds () << " done\n";
     }
 }
 static void
