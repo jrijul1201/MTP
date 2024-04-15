@@ -30,7 +30,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 
-std::string dir = "examples/results/hetero-400kb/";
+std::string dir = "examples/results/hetero-400kb-2/";
 bool thEnabled = false;
 static const uint32_t totalTxBytes = 409600;
 int simDuration = 10000; // In Seconds
