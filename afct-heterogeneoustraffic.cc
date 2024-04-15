@@ -40,7 +40,7 @@ uint8_t data[writeSize];
 int number_of_sources = 60;
 std::map<int, _Float64> fctMap;
 int fctDone = 0;
-int fctMax = 0;
+int fctMax = 100;
 
 void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void StartFlow2 (Ptr<Socket>, Ipv4Address, uint16_t);
@@ -165,7 +165,7 @@ TrackTotalRx (Ptr<PacketSink> pktSink, int index)
     {
       fctMap[index] = now.GetSeconds ();
       fctDone++;
-      fctMax += now.GetSeconds ();
+      fctMax = now.GetSeconds ();
       std::cout << now.GetSeconds () << " " << index << " done\n";
     }
 
