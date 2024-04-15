@@ -33,12 +33,13 @@ NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 std::string dir = "examples/results/hetero-400kb/";
 bool thEnabled = false;
 static const uint32_t totalTxBytes = 409600;
-int simDuration = 50; // In Seconds
+int simDuration = 10000; // In Seconds
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
 uint8_t data[writeSize];
 int number_of_sources = 60;
 std::map<int, _Float64> fctMap;
+int fctDone = 0;
 
 void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void StartFlow2 (Ptr<Socket>, Ipv4Address, uint16_t);
@@ -159,7 +160,13 @@ TrackTotalRx (Ptr<PacketSink> pktSink, int index)
     {
       Time now = Simulator::Now ();
       fctMap[index] = now.GetSeconds ();
+      fctDone++;
       std::cout << now.GetSeconds () << " done\n";
+    }
+
+  if (fctDone == 55)
+    {
+      printFctStats ();
     }
 }
 static void
@@ -1417,7 +1424,7 @@ main (int argc, char *argv[])
     }
   Simulator::Run ();
   Simulator::Destroy ();
-  printFctStats ();
+  // printFctStats ();
 
   return 0;
 }
@@ -1486,4 +1493,5 @@ printFctStats ()
     }
   myfile.close ();
   std::cout << "\nAFCT saved!\n";
+  exit (0);
 }

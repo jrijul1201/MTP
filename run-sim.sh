@@ -42,8 +42,16 @@ TCP_FLAVOUR=("TcpLinuxReno" "TcpNewReno")
 
 for rtt in {10..300..5}
 do
-    ../../ns3 run afct-hetero -- --thEnabled=true --R6_queue_size=100 --RTT=${rtt}ms &
-    ../../ns3 run afct-hetero -- --thEnabled=true --R6_queue_size=15 --RTT=${rtt}ms &
-    ../../ns3 run afct-hetero -- --RTT=${rtt}ms &
+    ../../ns3 run afct-hetero -- --RTT=${rtt}ms
+    wait
+done
+for rtt in {10..300..5}
+do
+    ../../ns3 run afct-hetero -- --thEnabled=true --R6_queue_size=15 --RTT=${rtt}ms
+    wait
+done
+for rtt in {10..300..5}
+do
+    ../../ns3 run afct-hetero -- --thEnabled=true --R6_queue_size=100 --RTT=${rtt}ms
     wait
 done
