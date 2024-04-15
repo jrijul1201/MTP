@@ -161,7 +161,7 @@ TrackTotalRx (Ptr<PacketSink> pktSink, int index)
       Time now = Simulator::Now ();
       fctMap[index] = now.GetSeconds ();
       fctDone++;
-      std::cout << now.GetSeconds () << " done\n";
+      std::cout << now.GetSeconds () << " " << index << " done\n";
     }
 
   if (fctDone == 55)
