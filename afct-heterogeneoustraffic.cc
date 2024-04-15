@@ -40,6 +40,7 @@ uint8_t data[writeSize];
 int number_of_sources = 60;
 std::map<int, _Float64> fctMap;
 int fctDone = 0;
+int fctMax = 0;
 
 void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void StartFlow2 (Ptr<Socket>, Ipv4Address, uint16_t);
@@ -152,15 +153,19 @@ void
 TrackTotalRx (Ptr<PacketSink> pktSink, int index)
 {
   // std::cout << pktSink->GetTotalRx () << " ";
+  Time now = Simulator::Now ();
+  if (now.GetSeconds () > 10 * fctMax)
+    exit (0);
+
   if (pktSink->GetTotalRx () < totalTxBytes)
     {
       Simulator::Schedule (Seconds (0.01), &TrackTotalRx, pktSink, index);
     }
   else
     {
-      Time now = Simulator::Now ();
       fctMap[index] = now.GetSeconds ();
       fctDone++;
+      fctMax += now.GetSeconds ();
       std::cout << now.GetSeconds () << " " << index << " done\n";
     }
 
