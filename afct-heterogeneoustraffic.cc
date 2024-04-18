@@ -23,7 +23,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 
-std::string dir = "examples/results/hetero-1mb/";
+std::string dir = "examples/results/hetero-1mb-500kb/";
 bool thEnabled = false;
 static const uint32_t totalTxBytes = 1048576;
 int simDuration = 100000; // In Seconds
@@ -1300,7 +1300,7 @@ main (int argc, char *argv[])
   int kkey = number_of_sources - 10;
   ApplicationContainer UDPApps[number_of_UDP_sources];
   OnOffHelper clientHelper ("ns3::UdpSocketFactory", Address ());
-  clientHelper.SetConstantRate (DataRate ("2Mb/s"));
+  clientHelper.SetConstantRate (DataRate ("500Kb/s"));
   ApplicationContainer UDPclientApps[number_of_UDP_sources];
 
   PacketSinkHelper UDPSink ("ns3::UdpSocketFactory",
