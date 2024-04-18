@@ -1,10 +1,3 @@
-/**
- * Author : Mahima Gupta
- * Date Created : 29/March/2024
- * Last Modified : 29/March/2024
- * Title : Multi Bottleneck Topology with DropTail Queues
-*/
-
 #include <iostream>
 #include <stdio.h>
 #include <regex>
