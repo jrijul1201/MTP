@@ -1391,35 +1391,35 @@ main (int argc, char *argv[])
   retVal = system (dirToSave.c_str ());
 
   // Configuring file stream to write the Qsize
-  AsciiTraceHelper ascii_qsize;
-  qSize_stream = ascii_qsize.CreateFileStream (dir + "QS.txt");
+  // AsciiTraceHelper ascii_qsize;
+  // qSize_stream = ascii_qsize.CreateFileStream (dir + "QS.txt");
 
-  AsciiTraceHelper ascii_dropped;
-  dropped_stream = ascii_dropped.CreateFileStream (dir + "Loss.txt");
+  // AsciiTraceHelper ascii_dropped;
+  // dropped_stream = ascii_dropped.CreateFileStream (dir + "Loss.txt");
 
-  AsciiTraceHelper ascii_qsize_tx;
-  bottleneckTransmittedStream = ascii_qsize_tx.CreateFileStream (dir + "th.txt");
+  // AsciiTraceHelper ascii_qsize_tx;
+  // bottleneckTransmittedStream = ascii_qsize_tx.CreateFileStream (dir + "th.txt");
 
-  AsciiTraceHelper ascii_tx;
-  utilization = ascii_tx.CreateFileStream (dir + "U.txt");
+  // AsciiTraceHelper ascii_tx;
+  // utilization = ascii_tx.CreateFileStream (dir + "U.txt");
 
-  AsciiTraceHelper ascii_cwnd;
-  congestion_window = ascii_cwnd.CreateFileStream (dir + "cwnd.txt");
+  // AsciiTraceHelper ascii_cwnd;
+  // congestion_window = ascii_cwnd.CreateFileStream (dir + "cwnd.txt");
 
-  Simulator::Schedule (Seconds (stime), &StartTracingQueueSize);
-  Simulator::Schedule (Seconds (stime), &StartTracingSink);
-  Simulator::Schedule (Seconds (stime), &StartTracingUtilization);
-  Simulator::Schedule (Seconds (stime), &TraceDroppedPacket, dir + "Loss.txt");
-  Simulator::Schedule (Seconds (stime), &StartTraceCwnd, 0);
-  for (int time = stime; time < simDuration;)
-    {
-      Simulator::Schedule (Seconds (time), &TraceQueueSize);
-      Simulator::Schedule (Seconds (time), &TraceDroppedPkts);
-      Simulator::Schedule (Seconds (time), &TraceUtilization, 1446);
-      Simulator::Schedule (Seconds (time), &TraceBottleneckTx, 1446);
-      Simulator::Schedule (Seconds (time), &TraceCwnd);
-      time = time + 1;
-    }
+  // Simulator::Schedule (Seconds (stime), &StartTracingQueueSize);
+  // Simulator::Schedule (Seconds (stime), &StartTracingSink);
+  // Simulator::Schedule (Seconds (stime), &StartTracingUtilization);
+  // Simulator::Schedule (Seconds (stime), &TraceDroppedPacket, dir + "Loss.txt");
+  // Simulator::Schedule (Seconds (stime), &StartTraceCwnd, 0);
+  // for (int time = stime; time < simDuration;)
+  // {
+  // Simulator::Schedule (Seconds (time), &TraceQueueSize);
+  // Simulator::Schedule (Seconds (time), &TraceDroppedPkts);
+  // Simulator::Schedule (Seconds (time), &TraceUtilization, 1446);
+  // Simulator::Schedule (Seconds (time), &TraceBottleneckTx, 1446);
+  // Simulator::Schedule (Seconds (time), &TraceCwnd);
+  // time = time + 1;
+  // }
   Simulator::Run ();
   Simulator::Destroy ();
   // printFctStats ();
