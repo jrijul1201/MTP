@@ -1545,21 +1545,22 @@ main (int argc, char *argv[])
   // utilization = ascii_tx.CreateFileStream(iterator + "U.txt");
 
   AsciiTraceHelper ascii_cwnd;
-  congestion_window = ascii_cwnd.CreateFileStream(iterator + "cwnd.txt");
+  congestion_window = ascii_cwnd.CreateFileStream (iterator + "cwnd.txt");
 
   // Simulator::Schedule( Seconds(stime), &StartTracingQueueSize);
   // Simulator::Schedule( Seconds(stime), &StartTracingSink);
   // Simulator::Schedule( Seconds(stime), &StartTracingUtilization);
   // Simulator::Schedule( Seconds(stime), &TraceDroppedPacket, iterator + "Loss.txt");
-  Simulator::Schedule( Seconds(stime), &StartTraceCwnd, 0);
-  for (int time = stime; time < simDuration; ){
+  Simulator::Schedule (Seconds (stime), &StartTraceCwnd, 0);
+  for (int time = stime; time < simDuration;)
+    {
       // Simulator::Schedule( Seconds(time), &TraceQueueSize);
       // Simulator::Schedule( Seconds(time), &TraceDroppedPkts);
       // Simulator::Schedule( Seconds(time), &TraceUtilization, 1446);
       // Simulator::Schedule( Seconds(time), &TraceBottleneckTx, 1446);
-      Simulator::Schedule( Seconds(time), &TraceCwnd);
+      Simulator::Schedule (Seconds (time), &TraceCwnd);
       time = time + 1;
-  }
+    }
   Simulator::Run ();
   Simulator::Destroy ();
   return 0;
