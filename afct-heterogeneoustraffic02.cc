@@ -673,7 +673,7 @@ main (int argc, char *argv[])
   //        Variable Declaration & Configurations
   // --------------------------------------------------
   std::string flavour = "TcpCubic"; //TCP variant considered
-  int simDuration = 250; // In Seconds
+  // int simDuration = 250; // In Seconds
   std::string RTT = "94ms"; //round-trip time of each TCP flow
   int number_of_nodes = 12 + (number_of_sources * 2);
   int number_of_links = 15 + (number_of_sources * 2);
