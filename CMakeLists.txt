@@ -236,6 +236,20 @@ build_example(
 )
 
 build_example(
+  NAME afct2-hetero
+  SOURCE_FILES afct-heterogeneoustraffic02.cc
+  LIBRARIES_TO_LINK
+    ${libcore}
+    ${libnetwork}
+    ${libinternet}
+    ${libpoint-to-point}
+    ${libapplications}
+    ${libipv4-static-routing}
+    ${libipv4-list-routing}
+    ${libconfig-store}
+)
+
+build_example(
   NAME afct-multi
   SOURCE_FILES afct-multi-bottleneck-topology.cc
   LIBRARIES_TO_LINK
