@@ -25,7 +25,7 @@ NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 
 std::string dir = "examples/results/hetero2-1mb-1mb/";
 bool thEnabled = false;
-static const uint32_t totalTxBytes = 1048;
+static const uint32_t totalTxBytes = 1048576;
 int simDuration = 100000; // In Seconds
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
@@ -1415,7 +1415,6 @@ main (int argc, char *argv[])
           apps[itr] = sink.Install (nodes.Get (j + (j + 1)));
           Ptr<PacketSink> pktSink = StaticCast<PacketSink> (apps[i].Get (0));
           apps[itr].Start (Seconds (0.0));
-          std::cout << j << " ";
           Simulator::Schedule (Seconds (0.01), &TrackTotalRx, pktSink, j);
           apps[itr].Stop (Seconds (simDuration));
           itr++;
