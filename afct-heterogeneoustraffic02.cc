@@ -23,9 +23,9 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 
-std::string dir = "examples/results/hetero2-1mb-1mb/";
+std::string dir = "examples/results/hetero2-100mb-1mb/";
 bool thEnabled = false;
-static const uint32_t totalTxBytes = 1048576;
+static const uint32_t totalTxBytes = 104857600;
 int simDuration = 100000; // In Seconds
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
