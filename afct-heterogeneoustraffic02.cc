@@ -660,7 +660,7 @@ TrackTotalRx (Ptr<PacketSink> pktSink, int index)
       std::cout << now.GetSeconds () << " " << index << " done\n";
     }
 
-  if (fctDone == 55)
+  if (fctDone == 52)
     {
       printFctStats ();
     }
@@ -1415,7 +1415,8 @@ main (int argc, char *argv[])
           apps[itr] = sink.Install (nodes.Get (j + (j + 1)));
           Ptr<PacketSink> pktSink = StaticCast<PacketSink> (apps[i].Get (0));
           apps[itr].Start (Seconds (0.0));
-          Simulator::Schedule (Seconds (0.01), &TrackTotalRx, pktSink, i);
+          std::cout << j << " ";
+          Simulator::Schedule (Seconds (0.01), &TrackTotalRx, pktSink, j);
           apps[itr].Stop (Seconds (simDuration));
           itr++;
         }
