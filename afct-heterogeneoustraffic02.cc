@@ -25,7 +25,7 @@ NS_LOG_COMPONENT_DEFINE ("SocketBoundTcpRoutingExample");
 
 std::string dir = "examples/results/hetero2-100mb-1mb/";
 bool thEnabled = false;
-static const uint32_t totalTxBytes = 1048576;
+static const uint32_t totalTxBytes = 104857600;
 int simDuration = 100000; // In Seconds
 static uint32_t currentTxBytes = 0;
 static const uint32_t writeSize = 1446;
@@ -1533,24 +1533,24 @@ main (int argc, char *argv[])
 
   // Configuring file stream to write the Qsize
   // AsciiTraceHelper ascii_qsize;
-  // qSize_stream = ascii_qsize.CreateFileStream(iterator + "QS.txt");
+  // qSize_stream = ascii_qsize.CreateFileStream(dir + "QS.txt");
 
   // AsciiTraceHelper ascii_dropped;
-  // dropped_stream = ascii_dropped.CreateFileStream (iterator + "Loss.txt");
+  // dropped_stream = ascii_dropped.CreateFileStream (dir + "Loss.txt");
 
   // AsciiTraceHelper ascii_qsize_tx;
-  // bottleneckTransmittedStream = ascii_qsize_tx.CreateFileStream(iterator + "th.txt");
+  // bottleneckTransmittedStream = ascii_qsize_tx.CreateFileStream(dir + "th.txt");
 
   // AsciiTraceHelper ascii_tx;
-  // utilization = ascii_tx.CreateFileStream(iterator + "U.txt");
+  // utilization = ascii_tx.CreateFileStream(dir + "U.txt");
 
   AsciiTraceHelper ascii_cwnd;
-  congestion_window = ascii_cwnd.CreateFileStream (iterator + "cwnd.txt");
+  congestion_window = ascii_cwnd.CreateFileStream (dir + "cwnd.txt");
 
   // Simulator::Schedule( Seconds(stime), &StartTracingQueueSize);
   // Simulator::Schedule( Seconds(stime), &StartTracingSink);
   // Simulator::Schedule( Seconds(stime), &StartTracingUtilization);
-  // Simulator::Schedule( Seconds(stime), &TraceDroppedPacket, iterator + "Loss.txt");
+  // Simulator::Schedule( Seconds(stime), &TraceDroppedPacket, dir + "Loss.txt");
   Simulator::Schedule (Seconds (stime), &StartTraceCwnd, 0);
   for (int time = stime; time < simDuration;)
     {
